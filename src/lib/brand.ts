@@ -64,7 +64,7 @@ export const DEFAULT_LOGO = '/error404-logo.png'
  * Example: https://your-error404-shop.vercel.app
  */
 export const BRAND_PRODUCTION_DOMAIN =
-  'https://YOUR-ERROR404-VERCEL-DOMAIN.vercel.app'
+  'https://error404-pos.vercel.app/admin-login'
 
 /** Convert an Indian phone number to digits with country code 91. */
 export const toE164 = (input: string): string => {
