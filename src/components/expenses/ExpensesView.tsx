@@ -166,7 +166,7 @@ export const ExpensesView: React.FC = () => {
           <p className="mt-1 text-xs font-semibold text-[#111111]">Record what the shop spends. Expenses are offset against sales to show your real Net Profit on the dashboard.</p>
         </div>
         <div className="flex flex-col gap-2 min-[1750px]:items-end">
-          <div className="inline-flex flex-wrap items-center gap-1 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+          <div className="inline-flex w-fit max-w-full flex-wrap items-center gap-1 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
             {(['today', 'week', 'month', 'year', 'all', 'custom'] as Period[]).map((p) => (
               <button key={p} type="button" onClick={() => setPeriod(p)}
                 className={`rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${period === p ? 'bg-primary text-primary-ink' : 'text-[#111111] hover:bg-gray-50'}`}>

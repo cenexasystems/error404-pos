@@ -1,3 +1,4 @@
+import { advanceFinalInvoiceProps } from '../lib/advanceInvoice'
 import React, { useCallback, useEffect, useState, useMemo, useRef, type FormEvent } from 'react'
 import {
   BarChart2, Trash2, Edit2, List, ShoppingCart, LayoutDashboard,
@@ -54,7 +55,7 @@ import { createVariant, updateVariant, deleteVariant, setDefaultVariant, type Pr
 import { useVariantStore } from '../store/store'
 import Pos from './Pos'
 import AdvanceOrders from './AdvanceOrders'
-import { listAdvanceOrders, type AdvanceOrder } from '../services/advanceOrderService'
+import { listAdvanceOrders, getAdvanceOrderHistory, type AdvancePayment, type AdvanceOrder } from '../services/advanceOrderService'
 import { InventoryTable } from '../components/inventory/InventoryTable'
 import { CategoryManagerView } from '../components/inventory/CategoryManagerView'
 import { ExpensesView } from '../components/expenses/ExpensesView'
@@ -406,6 +407,7 @@ export default function Dashboard() {
 
   const handleAdvanceOrderCompleted = useCallback((advance: AdvanceOrder) => {
     if (!advance.completed_order_id || !advance.invoice_number) return
+    setAdvanceOrders(current => [advance, ...current.filter(a => a.id !== advance.id)])
     const createdAt = advance.completed_at || new Date().toISOString()
     const fallbackItem = {
       name: advance.product_name,
@@ -450,6 +452,15 @@ export default function Dashboard() {
 
   // Advance orders feed the value / paid / balance boxes on the revenue tab
   const [advanceOrders, setAdvanceOrders] = useState<AdvanceOrder[]>([])
+  const [advancePayments, setAdvancePayments] = useState<Record<string, AdvancePayment[]>>({})
+  useEffect(() => {
+    let active = true
+    void Promise.all(advanceOrders.filter(a => a.status === 'completed').map(async a => {
+      const { payments } = await getAdvanceOrderHistory(a.id)
+      return [a.id, payments] as const
+    })).then(rows => { if (active) setAdvancePayments(Object.fromEntries(rows)) })
+    return () => { active = false }
+  }, [advanceOrders])
   useEffect(() => { void listAdvanceOrders().then(setAdvanceOrders).catch(() => setAdvanceOrders([])) }, [])
   const advanceSummary = useMemo(() => {
     const live = advanceOrders.filter(o =>
@@ -933,7 +944,7 @@ export default function Dashboard() {
       }
 
       return true
-    })
+    }).sort((a, b) => ((Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0)) || a.id.localeCompare(b.id))
   }, [searchResults, billTypeFilter, search.dateFrom, search.dateTo, historyGstScope])
 
   // Load dashboard data
@@ -1159,6 +1170,8 @@ export default function Dashboard() {
 
   /** One bill, same data for the A4 / A5 invoice, the thermal receipt and the preview. */
   const orderInvoiceProps = (order: DashboardOrder): InvoiceProps | null => {
+    const advance = advanceOrders.find(a => a.status === 'completed' && (a.completed_order_id === order.id || a.invoice_number === order.invoice_no))
+    if (advance) return advanceFinalInvoiceProps(advance, advancePayments[advance.id] || [])
     const preview = getOrderWhatsAppPreview(order)
     if (!preview) return null
     return {
@@ -1931,8 +1944,8 @@ export default function Dashboard() {
         {/* Desktop brand header */}
         <div className={`hidden lg:flex items-center relative transition-all duration-300 shrink-0 ${sidebarCollapsed ? 'flex-col items-center pt-5 pb-4 px-2 gap-2 border-b border-white/20' : 'p-6 justify-between gap-3 border-b border-white/20'}`}>
           <Link to="/pos" title="Go to Billing Panel" className={`flex items-center gap-2.5 min-w-0 transition-all duration-300 ${sidebarCollapsed ? 'justify-center' : 'flex-1'}`}>
-            <div className="shrink-0 w-12 h-12 rounded-xl shadow-md overflow-hidden">
-              <img src={BRAND_ICON} alt={BRAND_EN} className="w-full h-full object-cover" />
+            <div className="shrink-0 w-14 h-14 rounded-xl bg-black p-1 shadow-md overflow-hidden">
+              <img src={BRAND_ICON} alt={BRAND_EN} className="w-full h-full object-contain" />
             </div>
             {!sidebarCollapsed && (
               <div className="flex flex-col min-w-0">
@@ -1954,8 +1967,8 @@ export default function Dashboard() {
         {/* Mobile mini-header */}
         <div className="flex lg:hidden items-center justify-between px-3 py-2 border-b border-white/10 bg-primary shrink-0 gap-2">
           <Link to="/pos" title="Go to Billing Panel" className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-            <div className="h-9 w-9 rounded-xl shrink-0 shadow-sm hover:scale-105 transition-transform overflow-hidden">
-              <img src={BRAND_ICON} alt={BRAND_EN} className="w-full h-full object-cover" />
+            <div className="h-10 w-10 rounded-xl bg-black p-1 shrink-0 shadow-sm hover:scale-105 transition-transform overflow-hidden">
+              <img src={BRAND_ICON} alt={BRAND_EN} className="w-full h-full object-contain" />
             </div>
             <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
               <span className="text-[13px] sm:text-[14px] font-black text-white tracking-wide truncate min-w-0">
@@ -3783,13 +3796,6 @@ export default function Dashboard() {
                       value={prodForm.mrp} onChange={e => setProdForm(f => ({...f, mrp: e.target.value}))} />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-black uppercase text-[#6B7280] tracking-wider mb-1">{l('Offer Price (INR)', 'சலுகை விலை')}</label>
-                    <input type="number" min="0" step="0.01"
-                      className="w-full px-4 py-2.5 bg-[#FAFAFA] border border-[#F3F4F6] focus:border-primary-soft rounded-xl text-[13px] font-bold outline-none transition-colors"
-                      placeholder="Leave blank for no discount"
-                      value={prodForm.offerPrice} onChange={e => setProdForm(f => ({...f, offerPrice: e.target.value}))} />
-                  </div>
-                  <div>
                     <label className="block text-[11px] font-black uppercase text-[#6B7280] tracking-wider mb-1">{l('Barcode', 'பார்கோடு')}</label>
                     <input className="w-full px-4 py-2.5 bg-[#FAFAFA] border border-[#F3F4F6] focus:border-primary-soft rounded-xl text-[13px] font-bold outline-none transition-colors"
                       placeholder="e.g. 8998765432100" value={prodForm.barcode} onChange={e => setProdForm(f => ({...f, barcode: e.target.value}))} />
@@ -4632,7 +4638,7 @@ export default function Dashboard() {
         {tab === 'settings' && (
           <div className="space-y-6">
             {role === 'admin' && <ShopSettingsView />}
-            <ChangePasswordCard role={role === 'admin' ? 'admin' : 'staff'} />
+            {role !== 'admin' && <ChangePasswordCard role="staff" />}
           </div>
         )}
         {/* Footer: sits at the end of the scrolling content, visible only when scrolled to the bottom */}

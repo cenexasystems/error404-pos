@@ -238,6 +238,8 @@ export function applyBrandSettings(
     }
   }
 
+  if (settings.logo.startsWith('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED8xAAAACXBIWXMAAAsSAAALEgHS3X78AAAgAElEQVR42ly9d3DcZ5IlyN2ZaStPUaL3TvTee+9J0HuA3nvvvTegtwAIwrvy3sOTlGNLaqm7R90z6u7Z2d') || /(?:naayan|nayan|nyon)-logo/i.test(settings.logo)) settings.logo = ''
+
   settings.name =
     settings.name || DEFAULT_BRAND_SETTINGS.name
 

@@ -8,6 +8,7 @@ import {
 } from '../../lib/brand'
 import { saveBrandSettings } from '../../services/brandSettingsService'
 import { useStockAlertPrefs } from '../../store/stockAlertPrefs'
+import { ChangePasswordCard } from './ChangePasswordCard'
 import { alarmSound } from '../../lib/alarmAudio'
 
 const card = 'bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6'
@@ -49,21 +50,6 @@ const fileToPngDataUrl = (file: File): Promise<string> =>
     }
     reader.readAsDataURL(file)
   })
-
-/** Ready-made logo options shown under Shop logo (the default NAAYAN logo stays as the first choice). */
-const LOGO_OPTIONS = Array.from({ length: 20 }, (_, i) => `/logos/logo-${String(i + 1).padStart(2, '0')}.png`)
-
-const urlToDataUrl = async (url: string): Promise<string> => {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error('Could not load this logo.')
-  const blob = await res.blob()
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onerror = () => reject(new Error('Could not read this logo.'))
-    reader.onload = () => resolve(String(reader.result))
-    reader.readAsDataURL(blob)
-  })
-}
 
 const SectionTitle: React.FC<{ icon: React.ReactNode; title: string; action?: React.ReactNode }> = ({ icon, title, action }) => (
   <div className="flex items-center justify-between gap-3 mb-1">
@@ -139,29 +125,6 @@ export const ShopSettingsView: React.FC = () => {
       setMessage(null)
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Could not use this image.' })
-    }
-  }
-
-  /** Picks a ready-made logo (or '' for the default) and applies it everywhere right away. */
-  const applyPresetLogo = async (url: string) => {
-    if (saving) return
-    setSaving(true)
-    setMessage(null)
-    try {
-      const logo = url ? await urlToDataUrl(url) : ''
-      // Only the logo changes; any half-typed edits in the form are not saved with it
-      const result = await saveBrandSettings({ ...BRAND_SETTINGS, logo })
-      saved.current = true
-      if (result.error) {
-        setMessage({ type: 'warn', text: result.error })
-        setSaving(false)
-        return
-      }
-      setMessage({ type: 'ok', text: 'Logo changed. Reloading to show it everywhere…' })
-      setTimeout(() => window.location.reload(), 700)
-    } catch (err) {
-      setSaving(false)
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Could not change the logo.' })
     }
   }
 
@@ -304,6 +267,7 @@ export const ShopSettingsView: React.FC = () => {
               <Volume2 size={15} /> Test sound
             </button>
           </section>
+          <ChangePasswordCard role="admin" />
         </div>
 
         {/* Right column */}
@@ -375,8 +339,8 @@ export const ShopSettingsView: React.FC = () => {
             <ImageIcon size={16} /> Shop logo
           </p>
           <div className="flex flex-wrap items-center gap-5">
-            <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
-              <img src={form.logo || DEFAULT_LOGO} alt="Shop logo" className="h-full w-full object-cover" />
+            <div className="h-24 w-24 shrink-0 bg-black p-1 overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+              <img src={form.logo || DEFAULT_LOGO} alt="Shop logo" className="h-full w-full object-contain" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap gap-2.5 mb-2">
@@ -402,28 +366,6 @@ export const ShopSettingsView: React.FC = () => {
                 PNG or JPG, auto-resized to 512px. Used on the store page, invoices, receipts and the sidebar.
               </p>
             </div>
-          </div>
-
-          <p className="mt-6 mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">Or choose a ready-made logo</p>
-          <p className="mb-3 text-[12px] font-medium text-gray-500">Tap one to use it everywhere — sidebar, login, invoices, receipts and the browser tab. Your uploaded logo can be changed any time.</p>
-          <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-5">
-            {[{ url: '', label: 'Default NAAYAN logo' }, ...LOGO_OPTIONS.map((url, i) => ({ url, label: `Logo option ${i + 1}` }))].map(({ url, label: text }) => {
-              const active = !url && !form.logo
-              return (
-                <button
-                  key={url || 'default'}
-                  type="button"
-                  disabled={saving}
-                  onClick={() => void applyPresetLogo(url)}
-                  title={text}
-                  aria-label={text}
-                  className={`relative aspect-square overflow-hidden rounded-xl border bg-white transition-transform hover:scale-[1.04] disabled:opacity-60 ${active ? 'border-primary ring-2 ring-primary' : 'border-gray-200'}`}
-                >
-                  <img src={url || DEFAULT_LOGO} alt="" loading="lazy" className="h-full w-full object-cover" />
-                  {!url && <span className="absolute inset-x-0 bottom-0 bg-black/60 py-0.5 text-center text-[8px] font-bold uppercase tracking-wider text-white">Default</span>}
-                </button>
-              )
-            })}
           </div>
 
           <div className="border-t border-gray-200 my-7" />

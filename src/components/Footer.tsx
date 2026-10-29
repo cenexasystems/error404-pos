@@ -59,7 +59,7 @@ export default function Footer() {
         <div className="md:col-span-1">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0">
-              <img src={BRAND_ICON} alt={BRAND_EN} className="w-full h-full object-cover" />
+              <img src={BRAND_ICON} alt={BRAND_EN} className="w-full h-full object-contain" />
             </div>
             <div>
               <p className="font-bold text-white text-base sm:text-lg font-headline leading-tight">{BRAND_EN}</p>

@@ -38,10 +38,6 @@ export default function ProductCard({ product }: { product: Product }) {
     product.offerPrice && product.offerPrice < product.price
       ? product.offerPrice
       : product.price
-  const discount =
-    product.offerPrice && product.offerPrice < product.price
-      ? Math.round(((product.price - product.offerPrice) / product.price) * 100)
-      : 0
   // Use the default variant's price; never show "from ₹X" min-price
   const displayPrice =
     product.hasVariants && defaultVariant != null ? defaultVariant.price : basePrice
@@ -99,12 +95,6 @@ export default function ProductCard({ product }: { product: Product }) {
         <Heart size={13} className={fav ? 'fill-rose-500 text-rose-500' : 'text-slate-400'} />
       </motion.button>
 
-      {discount > 0 && (
-        <div className="absolute left-2 top-2 z-10 rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-black text-white">
-          {discount}% OFF
-        </div>
-      )}
-
       <div className="flex flex-1 flex-col gap-2 p-2.5 sm:p-3">
         {/* Image — click opens modal */}
         <button
@@ -148,11 +138,6 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="text-[13px] font-black text-[#111111] tabular-nums">
               {formatCurrency(displayPrice)}
             </span>
-            {discount > 0 && !product.hasVariants && (
-              <span className="ml-0.5 text-[10px] text-slate-400 line-through tabular-nums">
-                {formatCurrency(product.price)}
-              </span>
-            )}
           </div>
 
           {/* ADD / Stepper — pushed to bottom */}

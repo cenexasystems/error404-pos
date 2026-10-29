@@ -375,7 +375,6 @@ export const InventoryTable: React.FC = () => {
                               <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[13px] sm:grid-cols-3 lg:grid-cols-6">
                                 {[
                                   ['Category', item.category || 'General'],
-                                  ['Offer Price', item.offer_price ? formatCurrency(item.offer_price) : '—'],
                                   ['Cost Price', item.purchase_price ? formatCurrency(item.purchase_price) : '—'],
                                   ['Low Stock Alert', String(threshold)],
                                 ].map(([k, v]) => (

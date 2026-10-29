@@ -135,10 +135,6 @@ export default function ProductDetailModal({
   const effectivePrice = product && product.hasVariants && selectedVariant ? selectedVariant.price : basePrice
     const effectiveUnitLabel = product && product.hasVariants && selectedVariant ? (selectedVariant.sizeLabel || selectedVariant.variantName || product.unitLabel) : (product?.unitLabel ?? '')
 
-  const hasDiscount = !!(product && product.offerPrice && product.offerPrice < product.price)
-  const discount = product && hasDiscount
-    ? Math.round(((product.price - product.offerPrice!) / product.price) * 100)
-    : 0
 
   const compactPackOptions = useMemo(() => (product ? getCompactPackOptions(product) : []), [product])
 
@@ -283,7 +279,6 @@ export default function ProductDetailModal({
                         <Star size={12} className="fill-amber-400 text-amber-400" />
                         {(product.rating || 4.7).toFixed(1)}
                       </span>
-                      {discount > 0 && <span className="rounded-full bg-primary px-3 py-1.5 text-[11px] font-black text-white">{discount}% OFF</span>}
                     </div>
                     <p className="mt-1.5 text-[11px] font-bold text-[#9CA3AF]">
                       {selectedVariant ? selectedVariant.variantName : mobileSummary}
@@ -294,7 +289,6 @@ export default function ProductDetailModal({
                     <p className="text-[1.45rem] font-black leading-none text-[#111111]">
                       {formatCurrency(selectedVariant ? selectedVariant.price : basePrice)}
                     </p>
-                    {hasDiscount && !selectedVariant && <p className="mt-1 text-[10px] font-bold text-primary-soft line-through">{formatCurrency(product.price)}</p>}
                   </div>
                 </div>
               </section>
@@ -658,7 +652,6 @@ export default function ProductDetailModal({
                     <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-[11px] font-black text-[#6B7280] shadow-sm ring-1 ring-primary-100/45">
                       Trusted by 1000+ devotees
                     </span>
-                    {discount > 0 && <span className="rounded-full bg-primary px-3 py-1.5 text-[11px] font-black text-white">{discount}% OFF</span>}
                   </div>
                 </section>
 
@@ -671,7 +664,6 @@ export default function ProductDetailModal({
                       <p className="mt-1 text-[2rem] font-black leading-none text-[#111111]">
                         {formatCurrency(selectedVariant ? selectedVariant.price : basePrice)}
                       </p>
-                      {hasDiscount && !selectedVariant && <p className="mt-1 text-[11px] font-bold text-primary-soft line-through">{formatCurrency(product.price)}</p>}
                     </div>
                     <p className="max-w-[12rem] text-right text-[11px] font-bold text-[#9CA3AF]">Inclusive of taxes</p>
                   </div>

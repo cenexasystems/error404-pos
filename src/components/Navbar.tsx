@@ -46,7 +46,7 @@ export default function Navbar() {
         <nav className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-3 px-3 py-2.5 sm:px-4 sm:py-3 lg:gap-4">
           <Link to="/" className="group flex min-w-0 items-center gap-2 sm:gap-2.5">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden shadow-sm shrink-0 group-hover:opacity-90 transition-opacity">
-              <img src={BRAND_ICON} alt={BRAND_EN} className="w-full h-full object-cover" />
+              <img src={BRAND_ICON} alt={BRAND_EN} className="w-full h-full object-contain" />
             </div>
             <div className="flex min-w-0 flex-col leading-none">
               <p className="break-words text-[13px] sm:text-[14px] font-black leading-tight tracking-tight text-[#1F1F1F] md:text-[16px] font-headline">{BRAND_EN}</p>

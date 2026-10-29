@@ -1,7 +1,7 @@
 // Advance orders → the shared invoice layout (A4 / A5 sheet, thermal roll, preview and PDF).
 import type { InvoiceItem, InvoiceProps } from '../components/Invoice'
 import type { AdvanceOrder, AdvancePayment } from '../services/advanceOrderService'
-import { advanceBreakdown } from './advanceBreakdown'
+import { advancePaymentSummary, advanceBreakdown } from './advanceBreakdown'
 import { paymentLines } from './advanceReceipt'
 import { formatPaymentLabel } from './payments'
 
@@ -72,6 +72,8 @@ export function advanceReceiptProps(order: AdvanceOrder, payments: AdvancePaymen
 
 /** Final invoice once the balance is collected. */
 export function advanceFinalInvoiceProps(order: AdvanceOrder, payments: AdvancePayment[] = []): InvoiceProps {
+  const { channels } = advancePaymentSummary(order, payments)
+  const mixed = Object.values(channels).filter(amount => amount > 0).length > 1
   return {
     invoiceNo: order.invoice_number || order.deposit_id,
     date: order.completed_at || new Date().toISOString(),
@@ -81,11 +83,12 @@ export function advanceFinalInvoiceProps(order: AdvanceOrder, payments: AdvanceP
     items: orderItems(order),
     ...totalsFor(order),
     status: 'completed',
-    paymentMode: order.final_payment_method ? formatPaymentLabel(order.final_payment_method, order.split_details) : 'Paid',
+    paymentMode: mixed ? formatPaymentLabel('split', channels) : order.final_payment_method ? formatPaymentLabel(order.final_payment_method, order.split_details) : 'Paid',
     channel: 'advance order',
     amountReceived: order.total_amount,
     paymentRows: paymentLines(order, payments),
-    extraMeta: [['Advance Order', order.deposit_id]],
+    extraMeta: [['Advance Order', order.deposit_id], ...(order.reference_number ? [['Reference Number', order.reference_number] as [string, string]] : [])],
+    notes: order.remarks || undefined,
   }
 }
 

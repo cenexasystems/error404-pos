@@ -703,7 +703,8 @@ export default function AdvanceOrders({ onOrderCompleted }: AdvanceOrdersProps =
               {[
                 ['Customer', selected.customer_name],
                 ['Phone', formatPhoneDisplay(selected.phone)],
-                ['Address', selected.address || '-'],
+                ['Reference Number', selected.reference_number || '-'],
+                ['Remarks', selected.remarks || '-'],
                 ['Product', selected.product_name],
                 ['Category', selected.category || '-'],
                 ['Delivery Date', new Date(`${selected.expected_delivery_date}T00:00:00`).toLocaleDateString('en-IN')],

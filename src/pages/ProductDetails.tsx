@@ -108,10 +108,6 @@ export default function ProductDetails() {
     : 0
   // qty = 1 pack; lineTotal = price × 1
   const lineTotal = calculateLineTotal(1, product?.unitType ?? 'unit', 1, basePrice)
-  const hasDiscount = !!(product && product.offerPrice && product.offerPrice < product.price)
-  const discount = product && hasDiscount
-    ? Math.round(((product.price - product.offerPrice!) / product.price) * 100)
-    : 0
 
   const relatedProducts = useMemo(() => {
     if (!product) return []
@@ -223,9 +219,7 @@ export default function ProductDetails() {
               </span>
               <span className="inline-flex items-center gap-2 rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-black text-[#6B7280] shadow-sm ring-1 ring-primary-100/45">
                 <span className="text-[#9CA3AF]">{formatCurrency(basePrice)}</span>
-                {hasDiscount && <span className="text-primary-soft line-through">{formatCurrency(product.price)}</span>}
               </span>
-              {discount > 0 && <span className="rounded-full bg-primary px-3 py-1.5 text-[11px] font-black text-white">{discount}% OFF</span>}
             </div>
           </div>
         </section>
@@ -332,9 +326,7 @@ export default function ProductDetails() {
               </span>
               <span className="inline-flex items-center gap-2 rounded-full bg-primary-50 px-3 py-1.5 text-[11px] font-black text-[#6B7280] shadow-sm ring-1 ring-primary-100/45">
                 <span className="text-[#9CA3AF]">{formatCurrency(basePrice)}</span>
-                {hasDiscount && <span className="text-primary-soft line-through">{formatCurrency(product.price)}</span>}
               </span>
-              {discount > 0 && <span className="rounded-full bg-primary px-3 py-1.5 text-[11px] font-black text-white">{discount}% OFF</span>}
             </div>
           </div>
         </section>

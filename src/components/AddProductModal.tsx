@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { X, PackagePlus, Tag, Plus, Trash2 } from 'lucide-react'
 import { useProductStore } from '../store/store'
 import { db } from '../lib/db'
-import VariantOfferSummary from './inventory/VariantOfferSummary'
-import OfferFields from './inventory/OfferFields'
 import { normalizeBarcode } from '../lib/barcode'
 import { createPortal } from 'react-dom'
 
@@ -307,15 +305,6 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
               </label>
           </div>
 
-          <OfferFields
-            idPrefix="add-item-offer"
-            price={offerBasePrice}
-            offerPrice={form.offerPrice}
-            onChange={(v) => setForm(f => ({ ...f, offerPrice: v }))}
-            inputClassName={input}
-            labelClassName="mb-2 block text-[10px] font-bold uppercase tracking-[0.1em] text-amber-800"
-          />
-
             <div className="rounded-2xl border border-gray-200 p-5">
               <label className="flex items-center justify-between gap-4 cursor-pointer">
                 <span>
@@ -348,7 +337,6 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                         <button type="button" onClick={() => setVariants(rows => rows.filter(r => r.id !== v.id))} aria-label="Remove variant"
                           className="flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 hover:bg-red-50 hover:text-[#DC2626]"><Trash2 size={17} /></button>
                       </div>
-                      <VariantOfferSummary productPrice={offerBasePrice} offerPrice={form.offerPrice} variantPrice={Number(v.price) || Number(form.price) || offerBasePrice} />
                       </div>
                     )
                   })}

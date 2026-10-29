@@ -167,6 +167,22 @@ export async function listAdvanceOrders(): Promise<AdvanceOrder[]> {
         console.error('[listAdvanceOrders] Supabase error:', error.message)
       } else if (Array.isArray(data)) {
         const remote = data.map(row => normalizeOrder(row as Record<string, unknown>))
+        const completedIds = remote.filter(o => o.completed_order_id).map(o => o.completed_order_id!)
+        if (completedIds.length) {
+          const { data: invoices } = await db.from('orders')
+            .select('id, total_gst, gst_amount, delivery_charge, manual_discount_amount, discount_amount')
+            .in('id', completedIds)
+          for (const advance of remote) {
+            const invoice = invoices?.find(row => row.id === advance.completed_order_id)
+            const gst = Number(invoice?.total_gst ?? invoice?.gst_amount ?? 0)
+            if (invoice && gst > 0 && !(Number(advance.cgst_amount) + Number(advance.sgst_amount))) {
+              advance.cgst_amount = Math.round(gst * 50) / 100
+              advance.sgst_amount = Math.round((gst - advance.cgst_amount) * 100) / 100
+              advance.delivery_charge = Number(invoice.delivery_charge || 0)
+              advance.discount_amount = Number(invoice.discount_amount || 0) + Number(invoice.manual_discount_amount || 0)
+            }
+          }
+        }
         const remoteIds = new Set(remote.map(r => r.id))
         const localOnly = local.filter(l => !remoteIds.has(l.id))
         const merged = [...remote, ...localOnly].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())

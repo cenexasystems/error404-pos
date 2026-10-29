@@ -53,12 +53,12 @@ export default function AdminLogin() {
           <div className="flex flex-col items-center text-center">
             <div className="relative mb-4">
               <div className="absolute inset-0 -m-2 rounded-[24px] bg-primary/25 blur-lg" aria-hidden />
-              <div className="relative h-[76px] w-[76px] overflow-hidden rounded-[20px] shadow-md">
+              <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-black p-2 shadow-md">
                 <img
-  src={BRAND_LOGO}
-  alt={BRAND_EN}
-  className="h-full w-full object-contain p-1"
-/>
+                  src={BRAND_LOGO}
+                  alt={BRAND_EN}
+                  className="h-full w-full object-contain"
+                />
               </div>
             </div>
             <h1 className="font-serif text-[26px] sm:text-[28px] leading-tight text-primary" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>

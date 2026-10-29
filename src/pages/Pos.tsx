@@ -88,20 +88,6 @@ const offerMrp = (item: PosItem): number | null => {
   return item.source !== 'manual' && item.offerPrice && pay > 0 && pay < mrp ? mrp : null
 }
 
-/** "MRP ₹1,000 · 10% off (−₹100)" under an item that has a product offer. */
-function OfferLine({ item }: { item: PosItem }) {
-  const mrp = offerMrp(item)
-  if (!mrp) return null
-  const pay = Number(item.basePrice) || 0
-  const off = Math.round((mrp - pay) * 100) / 100
-  const pct = Math.round((off / mrp) * 1000) / 10
-  return (
-    <span className="ml-2 inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] font-semibold text-gray-500">
-      <span className="line-through">{formatCurrency(mrp)}</span>
-      <span className="rounded bg-amber-50 px-1.5 py-0.5 font-bold text-amber-700">{pct}% off · −{formatCurrency(off)}</span>
-    </span>
-  )
-}
 
 // Returns the product ID if it looks like a real DB identifier (UUID or numeric),
 // or null for synthetic/manual IDs like "manual-<timestamp>".
@@ -192,6 +178,7 @@ export default function Pos(props: PosProps = {}) {
   const [items, setItems] = useState<PosItem[]>([])
   const [customer, setCustomer] = useState({ name: '', phone: '', address: '' })
   const [remarks, setRemarks] = useState('')
+  const [referenceNumber, setReferenceNumber] = useState('')
   const [birthDate, setBirthDate] = useState('') // YYYY-MM-DD, optional
   const [billingDate, setBillingDate] = useState('') // '' = use current date/time
   const [paymentType, setPaymentType] = useState<'cash' | 'qr' | 'card' | 'split'>('cash')
@@ -676,6 +663,7 @@ export default function Pos(props: PosProps = {}) {
     setError('')
     setShipping('0')
     setRemarks('')
+    setReferenceNumber('')
     setBirthDate('')
     setBillingDate('')
     setBillGstEnabled(false)
@@ -751,7 +739,7 @@ export default function Pos(props: PosProps = {}) {
     if (total <= 0) { setError('The order total must be greater than zero.'); return }
     const enteredAmount = Number(cashReceived) || 0
     const suggestedDeposit = enteredAmount > 0 && enteredAmount < total ? String(enteredAmount) : ''
-    setDepositForm({ amount: suggestedDeposit, expectedDeliveryDate: '', paymentMethod: 'cash', address: customer.address || '', remarks: '' })
+    setDepositForm({ amount: suggestedDeposit, expectedDeliveryDate: '', paymentMethod: 'cash', address: customer.address || '', remarks })
     setDepositSplit(emptySplitInput())
     setError('')
     setDepositOpen(true)
@@ -786,7 +774,7 @@ export default function Pos(props: PosProps = {}) {
         category: Array.from(new Set(items.map(item => item.category).filter(Boolean))).join(', '),
         description: items.map(item => `${item.qty}× ${item.name}${item.note ? ` — ${item.note}` : ''}`).join('\n'),
         totalAmount: total, depositAmount, expectedDeliveryDate: depositForm.expectedDeliveryDate,
-        remarks: depositForm.remarks, paymentMethod: depositForm.paymentMethod, createdByName: role || 'Staff',
+        referenceNumber: referenceNumber.trim(), remarks: depositForm.remarks, paymentMethod: depositForm.paymentMethod, createdByName: role || 'Staff',
         products: productsSnapshot,
         // total = subtotal - discount + GST + delivery; keep the parts so receipts / invoice can show them
         breakdown: {
@@ -877,6 +865,7 @@ export default function Pos(props: PosProps = {}) {
         paymentMethod: paymentMode,
         splitDetails: splitDetailsForBill,
         remarks: remarks.trim(),
+        referenceNumber: referenceNumber.trim(),
         billingDate: effectiveBillingDate,
       })
 
@@ -897,6 +886,7 @@ export default function Pos(props: PosProps = {}) {
         manual_discount_amount: manualDiscountAmount,
         delivery_charge: Number(shipping || 0),
         remarks: remarks.trim(),
+        reference_number: referenceNumber.trim(),
         billing_date: effectiveBillingDate,
       }).eq('id', created.orderId)
 
@@ -1117,8 +1107,8 @@ export default function Pos(props: PosProps = {}) {
                 [l('Subtotal', 'துணை மொத்தம்'), formatCurrency(invoice.subtotal)],
                 ...(invoice.couponDiscount > 0 ? [[`Coupon${invoice.couponCode ? ` (${invoice.couponCode})` : ''}`, `−${formatCurrency(invoice.couponDiscount)}`, 'text-emerald-600'] as [string, string, string]] : []),
                 ...(invoice.manualDiscountAmount > 0 ? [['Discount', `−${formatCurrency(invoice.manualDiscountAmount)}`, 'text-emerald-600'] as [string, string, string]] : []),
-                ...(invoice.shipping > 0 ? [['Delivery', formatCurrency(invoice.shipping)] as [string, string]] : []),
                 ...(gst > 0 ? [[`CGST${gstPctLabel(cgst, taxable)}`, formatCurrency(cgst)], [`SGST${gstPctLabel(sgst, taxable)}`, formatCurrency(sgst)], [`Total GST${gstPctLabel(gst, taxable)}`, formatCurrency(gst)]] as Array<[string, string]> : []),
+                ...(invoice.shipping > 0 ? [['Delivery', formatCurrency(invoice.shipping)] as [string, string]] : []),
               ]
               return (
                 <div className="mt-4 rounded-2xl border border-gray-200 p-5">
@@ -1309,18 +1299,13 @@ export default function Pos(props: PosProps = {}) {
                   className={`${posInput} !font-black`}
                 />
               </div>
-              <div className="min-w-0 md:col-span-3">
-                <label htmlFor="pos-customer-address" className={posLabel}>Customer Address (Optional)</label>
-                <input
-                  id="pos-customer-address"
-                  name="customerAddress"
-                  autoComplete="street-address"
-                  type="text"
-                  value={customer.address}
-                  onChange={e => setCustomer({ ...customer, address: e.target.value })}
-                  placeholder="Enter full address"
-                  className={posInput}
-                />
+              <div className="min-w-0">
+                <label htmlFor="pos-reference-number" className={posLabel}>Reference Number (Optional)</label>
+                <input id="pos-reference-number" name="referenceNumber" value={referenceNumber} onChange={e => setReferenceNumber(e.target.value)} className={posInput} />
+              </div>
+              <div className="min-w-0 md:col-span-2">
+                <label htmlFor="pos-remarks" className={posLabel}>Remarks (Optional)</label>
+                <input id="pos-remarks" name="remarks" value={remarks} onChange={e => setRemarks(e.target.value)} className={posInput} />
               </div>
               <div className="min-w-0">
                 <label htmlFor="pos-birth-date" className={posLabel}>Birthday (Optional)</label>
@@ -1409,7 +1394,7 @@ export default function Pos(props: PosProps = {}) {
                             className={posInput}
                           />
                         ) : (
-                          <p className="text-sm font-black text-[#111111] break-words">{itemDisplayName(item)}<OfferLine item={item} /></p>
+                          <p className="text-sm font-black text-[#111111] break-words">{itemDisplayName(item)}</p>
                         )}
                       </div>
                       <button type="button" onClick={() => removeItem(item.id)} aria-label={`Remove ${item.name || 'item'}`} className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-200 text-[#111111] hover:bg-red-50 hover:text-red-600">
@@ -1448,7 +1433,7 @@ export default function Pos(props: PosProps = {}) {
                       ) : (
                         <div className="flex h-9 min-w-0 flex-1 items-center rounded-xl border border-gray-200 px-4">
                           <span className="truncate text-[14px] font-bold text-[#111111]">{itemDisplayName(item)}</span>
-                          <OfferLine item={item} />
+
                         </div>
                       )}
                       <button
@@ -1626,34 +1611,7 @@ export default function Pos(props: PosProps = {}) {
                   <span className="font-black text-emerald-600">−{formatCurrency(manualDiscountAmount)}</span>
                 </div>
               )}
-              <div className="flex items-center justify-between text-sm text-[#111111]">
-                <label htmlFor="pos-shipping-input">Delivery</label>
-                <input
-                  id="pos-shipping-input"
-                  name="shippingFee"
-                  type="number"
-                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                  value={shipping}
-                  onChange={e => setShipping(e.target.value)}
-                  className="h-10 w-24 rounded-xl border border-gray-200 px-3 text-right text-[14px] font-black text-[#111111] focus:border-primary focus:outline-none"
-                />
-              </div>
-              {billGstEnabled && totalGst > 0 && (
-                <>
-                  <div className="flex items-center justify-between text-sm text-[#111111]">
-                    <span>CGST{gstPctLabel(totalGst / 2, discountedSubtotal)}</span>
-                    <span className="font-black">{formatCurrency(Math.round((totalGst / 2) * 100) / 100)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-[#111111]">
-                    <span>SGST{gstPctLabel(totalGst / 2, discountedSubtotal)}</span>
-                    <span className="font-black">{formatCurrency(Math.round((totalGst - Math.round((totalGst / 2) * 100) / 100) * 100) / 100)}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm text-[#111111]">
-                    <span>Total GST{gstPctLabel(totalGst, discountedSubtotal)}</span>
-                    <span className="font-black">{formatCurrency(totalGst)}</span>
-                  </div>
-                </>
-              )}
+
             </div>
 
             {/* Non-GST bill / GST invoice */}
@@ -1689,6 +1647,35 @@ export default function Pos(props: PosProps = {}) {
                 />
               </div>
             )}
+
+              {billGstEnabled && totalGst > 0 && (
+                <>
+                  <div className="flex items-center justify-between text-sm text-[#111111]">
+                    <span>CGST{gstPctLabel(totalGst / 2, discountedSubtotal)}</span>
+                    <span className="font-black">{formatCurrency(Math.round((totalGst / 2) * 100) / 100)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-[#111111]">
+                    <span>SGST{gstPctLabel(totalGst / 2, discountedSubtotal)}</span>
+                    <span className="font-black">{formatCurrency(Math.round((totalGst - Math.round((totalGst / 2) * 100) / 100) * 100) / 100)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-[#111111]">
+                    <span>Total GST{gstPctLabel(totalGst, discountedSubtotal)}</span>
+                    <span className="font-black">{formatCurrency(totalGst)}</span>
+                  </div>
+                </>
+              )}
+              <div className="flex items-center justify-between text-sm text-[#111111]">
+                <label htmlFor="pos-shipping-input">Delivery</label>
+                <input
+                  id="pos-shipping-input"
+                  name="shippingFee"
+                  type="number"
+                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                  value={shipping}
+                  onChange={e => setShipping(e.target.value)}
+                  className="h-10 w-24 rounded-xl border border-gray-200 px-3 text-right text-[14px] font-black text-[#111111] focus:border-primary focus:outline-none"
+                />
+              </div>
 
             {/* Financial option */}
             <div>
@@ -1794,8 +1781,7 @@ export default function Pos(props: PosProps = {}) {
               <label htmlFor="pos-deposit-delivery-date" className="block"><span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-[#6B7280]">Expected delivery *</span><input id="pos-deposit-delivery-date" name="deliveryDate" required type="date" value={depositForm.expectedDeliveryDate} onChange={e => setDepositForm({...depositForm, expectedDeliveryDate:e.target.value})} className="w-full rounded-xl border px-3 py-2.5 text-sm font-bold outline-none focus:border-gray-600"/></label>
               <label htmlFor="pos-deposit-payment-method" className="block"><span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-[#6B7280]">Payment method *</span><select id="pos-deposit-payment-method" name="paymentMethod" value={depositForm.paymentMethod} onChange={e => setDepositForm({...depositForm,paymentMethod:e.target.value as AdvancePaymentMethod})} className="w-full rounded-xl border px-3 py-2.5 text-sm font-bold outline-none focus:border-gray-600"><option value="cash">Cash</option><option value="upi">QR</option><option value="card">Card</option><option value="split">Split (Cash / QR / Card)</option></select></label>
               {depositForm.paymentMethod === 'split' && (<div className="sm:col-span-2"><SplitPaymentInputs idPrefix="pos-deposit-split" total={Number(depositForm.amount) || 0} value={depositSplit} onChange={setDepositSplit} /></div>)}
-              <label htmlFor="pos-deposit-address" className="block sm:col-span-2"><span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-[#6B7280]">Delivery address</span><textarea id="pos-deposit-address" name="deliveryAddress" autoComplete="street-address" value={depositForm.address} onChange={e => setDepositForm({...depositForm,address:e.target.value})} className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:border-gray-600" rows={2}/></label>
-              <label htmlFor="pos-deposit-remarks" className="block sm:col-span-2"><span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-[#6B7280]">Remarks</span><textarea id="pos-deposit-remarks" name="depositRemarks" value={depositForm.remarks} onChange={e => setDepositForm({...depositForm,remarks:e.target.value})} className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:border-gray-600" rows={2}/></label>
+              <label htmlFor="pos-deposit-remarks" className="block sm:col-span-2"><span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-[#6B7280]">Remarks (Optional)</span><textarea id="pos-deposit-remarks" name="depositRemarks" value={depositForm.remarks} onChange={e => setDepositForm({...depositForm,remarks:e.target.value})} className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:border-gray-600" rows={2}/></label>
             </div>
             {error && <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-600">{error}</div>}
             <div className="mt-5 flex gap-3"><button type="button" onClick={() => { setDepositOpen(false); setError('') }} className="flex-1 rounded-xl border py-3 text-sm font-black">Cancel</button><button disabled={saving} className="flex-[1.5] rounded-xl bg-gray-700 py-3 text-sm font-black text-white disabled:opacity-50">{saving ? 'Saving…' : 'Confirm Deposit Order'}</button></div>

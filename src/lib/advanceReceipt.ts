@@ -4,7 +4,7 @@ import { BRAND_PRINT_LOGO } from './brand'
 import { formatCurrency } from './retail'
 import { formatPaymentLabel } from './payments'
 import type { AdvanceOrder, AdvancePayment } from '../services/advanceOrderService'
-import { advanceBreakdownRows, channelLines, paymentChannels } from './advanceBreakdown'
+import { advancePaymentSummary, advanceBreakdownRows, channelLines, paymentChannels } from './advanceBreakdown'
 import { normalizePaymentMode, round2 } from './payments'
 import { formatPhoneDisplay } from './phone'
 import { printHtmlDocument } from './printHtml'
@@ -36,6 +36,10 @@ export function paymentLines(order: AdvanceOrder, payments: AdvancePayment[]): P
   }
   add('Deposit Paid', order.deposit_amount, deposit)
   if (order.status === 'completed') add('Final Balance Paid', round2(order.total_amount - order.deposit_amount), final)
+  if (!deposit && !final && order.status === 'completed') {
+    const { channels } = advancePaymentSummary(order, payments)
+    channelLines(channels).forEach(([label, value]) => out.push({ label, value, sub: true }))
+  }
   out.push({ label: order.status === 'completed' ? 'Remaining Balance (Fully Settled)' : 'Balance Due', value: order.status === 'completed' ? 0 : order.remaining_balance, accent: true })
   return out
 }

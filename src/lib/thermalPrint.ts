@@ -1,6 +1,7 @@
 import { BRAND_ADDRESS, BRAND_EN, BRAND_GSTIN, BRAND_PRIMARY_PHONE_DISPLAY } from './brand'
 import { formatCurrency, formatInvoiceNo } from './retail'
 import { printHtmlDocument } from './printHtml'
+import { BRAND_PRINT_LOGO } from './brand'
 import { amountInWords } from './amountInWords'
 import { loadPrintSettings, type ThermalWidth } from './printSettings'
 
@@ -118,6 +119,7 @@ export function buildThermalReceiptHtml(data: ThermalReceiptData, width: Thermal
 </style>
 </head>
 <body>
+  <img src="${esc(BRAND_PRINT_LOGO)}" alt="Shop logo" style="display:block;width:48px;height:48px;object-fit:contain;margin:0 auto 6px;" />
   <div class="c">
     <div class="b" style="font-size:${narrow ? 15 : 18}px; letter-spacing:1px;">${esc(name)}</div>
     <div style="font-size:${base - 1.5}px; line-height:1.35; margin-top:4px;">${esc(data.storeAddress || BRAND_ADDRESS)}</div>

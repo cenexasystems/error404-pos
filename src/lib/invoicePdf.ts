@@ -50,7 +50,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(muted)
-  doc.text('TAX INVOICE', left, y)
+  doc.text((data.gstAmount || data.cgstAmount || data.sgstAmount || 0) > 0 ? 'TAX INVOICE' : 'INVOICE', left, y)
   doc.text(`Invoice: #${formattedNo}`, right, y, { align: 'right' })
   y += 7
   doc.setDrawColor('#F3F4F6')
@@ -58,7 +58,9 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   y += 10
 
   try {
-    doc.addImage(BRAND_PRINT_LOGO, 'PNG', left, y, 22, 22)
+    const image = doc.getImageProperties(BRAND_PRINT_LOGO)
+    const scale = Math.min(22 / image.width, 22 / image.height)
+    doc.addImage(BRAND_PRINT_LOGO, 'PNG', left + (22 - image.width * scale) / 2, y + (22 - image.height * scale) / 2, image.width * scale, image.height * scale)
   } catch {
     doc.setTextColor(primaryColor)
     doc.setFontSize(16)

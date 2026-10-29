@@ -49,7 +49,7 @@ export function InstallAppPrompt() {
     <div className="fixed right-4 left-4 sm:left-auto z-[60] sm:w-[360px] print:hidden" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}>
       <div className="relative flex items-center gap-3 rounded-[18px] border border-primary/40 bg-[#111111] p-2.5 pr-3 text-white shadow-[0_20px_45px_-12px_rgba(0,0,0,0.55)]">
         <div className="h-[42px] w-[42px] shrink-0 overflow-hidden rounded-lg">
-          <img src={BRAND_ICON} alt="" className="h-full w-full object-cover" />
+          <img src={BRAND_ICON} alt="" className="h-full w-full object-contain" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-[12.5px] font-black uppercase tracking-tight">Install {BRAND_EN}</p>
