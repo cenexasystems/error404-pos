@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+.git-backup/
+node_modules/
+dist/
+build/
+.vercel/
