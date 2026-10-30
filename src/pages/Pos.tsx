@@ -1301,11 +1301,11 @@ export default function Pos(props: PosProps = {}) {
               </div>
               <div className="min-w-0">
                 <label htmlFor="pos-reference-number" className={posLabel}>Reference Number (Optional)</label>
-                <input id="pos-reference-number" name="referenceNumber" value={referenceNumber} onChange={e => setReferenceNumber(e.target.value)} className={posInput} />
+                <input id="pos-reference-number" name="referenceNumber" placeholder="Enter reference number" value={referenceNumber} onChange={e => setReferenceNumber(e.target.value)} className={posInput} />
               </div>
               <div className="min-w-0 md:col-span-2">
                 <label htmlFor="pos-remarks" className={posLabel}>Remarks (Optional)</label>
-                <input id="pos-remarks" name="remarks" value={remarks} onChange={e => setRemarks(e.target.value)} className={posInput} />
+                <input id="pos-remarks" name="remarks" placeholder="Enter remarks" value={remarks} onChange={e => setRemarks(e.target.value)} className={posInput} />
               </div>
               <div className="min-w-0">
                 <label htmlFor="pos-birth-date" className={posLabel}>Birthday (Optional)</label>

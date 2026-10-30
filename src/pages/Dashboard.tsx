@@ -45,7 +45,7 @@ import { normalizeStructuredOrderItem, formatInvoiceNo } from '../lib/retail'
 import { type InvoiceProps } from '../components/Invoice'
 import InvoicePreviewModal from '../components/print/InvoicePreviewModal'
 import PrintSettingsModal from '../components/print/PrintSettingsModal'
-import { printBill } from '../lib/billPrint'
+import { invoicePdfFromProps, printBill } from '../lib/billPrint'
 import { buildProfessionalWhatsAppMessage, publicInvoiceUrl } from '../lib/whatsappMessage'
 import { invoicePdfFile } from '../lib/invoicePdf'
 import { formatPhoneDisplay, formatPhoneForCSV } from '../lib/phone'
@@ -1205,11 +1205,45 @@ export default function Dashboard() {
       return
     }
 
+    const advance = advanceOrders.find(a => a.status === 'completed' && (a.completed_order_id === order.id || a.invoice_number === order.invoice_no))
+    if (advance) {
+      try {
+        const { payments } = await getAdvanceOrderHistory(advance.id)
+        const props = advanceFinalInvoiceProps(advance, payments)
+        if (mode === 'print') { setPrintOrder(order); return }
+        const file = await invoicePdfFromProps(props, `Invoice-${advance.invoice_number || advance.deposit_id}.pdf`)
+        const url = URL.createObjectURL(file)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = file.name
+        link.click()
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
+      } catch (err) {
+        alert(err instanceof Error ? err.message : 'Unable to create the PDF')
+      }
+      return
+    }
+
+    if (mode === 'download') {
+      const props = orderInvoiceProps(order)
+      if (!props) { alert('This order has no invoice details available.'); return }
+      try {
+        const file = await invoicePdfFromProps(props, `Invoice-${order.invoice_no || order.id}.pdf`)
+        const url = URL.createObjectURL(file)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = file.name
+        link.click()
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
+      } catch (err) {
+        alert(err instanceof Error ? err.message : 'Unable to create the PDF')
+      }
+      return
+    }
+
     if (order.invoice_pdf_url) {
       const link = document.createElement('a')
       link.href = order.invoice_pdf_url
-      if (mode === 'download') link.download = `Invoice-${order.invoice_no || order.id}.pdf`
-      if (mode === 'download') { link.click(); return }
       const opened = window.open(order.invoice_pdf_url, '_blank', 'noopener,noreferrer')
       if (mode === 'print') opened?.addEventListener('load', () => opened.print())
       return
@@ -1232,11 +1266,6 @@ export default function Dashboard() {
       total: order.total,
     })
     const url = URL.createObjectURL(file)
-    if (mode === 'download') {
-      const link = document.createElement('a'); link.href = url; link.download = file.name; link.click()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
-      return
-    }
     const opened = window.open(url, '_blank', 'noopener,noreferrer')
     if (mode === 'print') opened?.addEventListener('load', () => opened.print())
   }
