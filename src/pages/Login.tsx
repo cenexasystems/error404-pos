@@ -95,8 +95,8 @@ export default function Login() {
 
   /* ── Render ───────────────────────────────────────────────────── */
   return (
-    <div className="bg-gradient-to-br from-[#F3F4F6] to-[#F9FAFB] min-h-screen flex items-center justify-center p-4">
-      <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-sand/40 w-full max-w-md">
+    <div className="bg-gradient-to-br from-[#F3F4F6] to-[#F9FAFB] h-full overflow-y-auto flex flex-col items-center p-4">
+      <div className="my-auto shrink-0 bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-sand/40 w-full max-w-md">
 
         {/* Brand */}
         <div className="flex flex-col items-center mb-6">

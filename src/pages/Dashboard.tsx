@@ -2042,7 +2042,7 @@ export default function Dashboard() {
               <span className="shrink-0 flex items-center">
                 {item.icon}
               </span>
-              <span className={`hidden lg:block truncate text-left transition-all duration-200 ${sidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'opacity-100 flex-1'}`}>
+              <span className={`block max-w-[100px] lg:max-w-none truncate text-left transition-all duration-200 ${sidebarCollapsed ? 'lg:w-0 lg:opacity-0 lg:overflow-hidden' : 'opacity-100 lg:flex-1'}`}>
                 {item.label}
               </span>
               {!!item.badge && !sidebarCollapsed && (
@@ -2071,14 +2071,14 @@ export default function Dashboard() {
             ].join(' ')}
           >
             <span className="shrink-0"><LogOut size={20} /></span>
-            <span className={`truncate text-left transition-all duration-200 ${sidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'opacity-100 flex-1'}`}>Log out</span>
+            <span className={`truncate text-left transition-all duration-200 ${sidebarCollapsed ? 'lg:w-0 lg:opacity-0 lg:overflow-hidden' : 'opacity-100 lg:flex-1'}`}>Log out</span>
           </button>
         </div>
 
       </aside>
 
       {/* Main */}
-      <main className="flex flex-1 min-h-0 flex-col overflow-hidden">
+      <main className="flex flex-1 min-w-0 min-h-0 flex-col overflow-hidden">
         <div className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-3 sm:px-8 lg:px-12 pt-3 pb-2 bg-white">
         <div className="lg:hidden h-4" />
 
@@ -3707,16 +3707,12 @@ export default function Dashboard() {
                                   <span>{l('Edit Order Details', 'விவரங்களை திருத்து')}</span>
                                 </button>
                               </div>
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-[12px]">
-                                <div>
-                                  <p className="text-[10px] font-black uppercase text-[#9CA3AF] tracking-wider mb-1">Customer</p>
-                                  <p className="font-semibold text-[#111111] break-words">{o.customer_name || '—'}</p>
+                              {o.address === 'POS Counter' && (
+                                <div className="text-[12px]">
+                                  <p className="text-[10px] font-black uppercase text-[#9CA3AF] tracking-wider mb-1">Counter</p>
+                                  <p className="font-semibold text-[#374151]">POS Counter</p>
                                 </div>
-                                <div>
-                                  <p className="text-[10px] font-black uppercase text-[#9CA3AF] tracking-wider mb-1">Address</p>
-                                  <p className="font-semibold text-[#374151] break-words">{o.address || '—'}</p>
-                                </div>
-                              </div>
+                              )}
                               {(() => {
                                 const itemsSubtotal = getOrderWhatsAppPreview(o)?.subtotal ?? 0
                                 const rows: Array<[string, string, string?]> = []
@@ -3791,13 +3787,13 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
                     <label className="block text-[11px] font-black uppercase text-[#6B7280] tracking-wider mb-1">{l('Product Name', 'பொருள் பெயர்')} *</label>
                     <input required className="w-full px-4 py-2.5 bg-[#FAFAFA] border border-[#F3F4F6] focus:border-primary-soft rounded-xl text-[13px] font-bold outline-none transition-colors"
                       placeholder="e.g. Manjal Podi" value={prodForm.name} onChange={e => setProdForm(f => ({...f, name: e.target.value}))} />
                   </div>
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <label className="block text-[11px] font-black uppercase text-[#6B7280] tracking-wider mb-1">{l('Tamil Name', 'தமிழ் பெயர்')}</label>
                     <input className="w-full px-4 py-2.5 bg-[#FAFAFA] border border-[#F3F4F6] focus:border-primary-soft rounded-xl text-[13px] font-bold outline-none transition-colors"
                       placeholder="எ.கா. மஞ்சள் பொடி" value={prodForm.nameTa} onChange={e => setProdForm(f => ({...f, nameTa: e.target.value}))} />
@@ -3835,7 +3831,7 @@ export default function Dashboard() {
                       className="w-full px-4 py-2.5 bg-[#FAFAFA] border border-[#F3F4F6] focus:border-primary-soft rounded-xl text-[13px] font-bold outline-none transition-colors"
                       value={prodForm.stockQuantity} onChange={e => setProdForm(f => ({...f, stockQuantity: e.target.value}))} />
                   </div>
-                  <div className="col-span-2 sm:col-span-1">
+                  <div className="sm:col-span-1">
                     <label className="block text-[11px] font-black uppercase text-[#6B7280] tracking-wider mb-1">{l('Category', 'வகை')} *</label>
                     <select required className="w-full min-w-0 h-9 px-4 py-2.5 bg-[#FAFAFA] border border-[#F3F4F6] focus:border-primary-soft rounded-xl text-[13px] font-bold outline-none transition-colors touch-manipulation"
                       value={prodForm.category}
@@ -4067,8 +4063,8 @@ export default function Dashboard() {
                       {editingVariantId ? l('Edit Variant', 'வகை திருத்து') : l('Add Variant', 'வகை சேர்')}
                     </h4>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="sm:col-span-2">
                         <label className="block text-[11px] font-black uppercase tracking-wider text-[#6B7280] mb-1">{l('Variant Name *', 'வகை பெயர் *')}</label>
                         <input required
                           className="w-full px-4 py-2.5 bg-white rounded-xl border border-[#E5E7EB] text-[13px] font-bold outline-none focus:border-primary-soft transition-colors shadow-sm"
@@ -4792,19 +4788,6 @@ export default function Dashboard() {
                     <option value="completed">{l('Completed', 'முடிந்தது')}</option>
                   </select>
                 </div>
-              </div>
-
-              <div>
-                <label className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-1">
-                  {l('Delivery Address', 'முகவரி')}
-                </label>
-                <textarea
-                  rows={2}
-                  className="w-full p-2.5 rounded-xl border border-gray-200 text-xs sm:text-[13px] font-semibold text-gray-900 focus:outline-none focus:border-primary-soft focus:ring-1 focus:ring-primary-soft"
-                  value={editOrderForm.address}
-                  onChange={e => setEditOrderForm(f => ({ ...f, address: e.target.value }))}
-                  placeholder="Delivery address or location..."
-                />
               </div>
 
               <div>

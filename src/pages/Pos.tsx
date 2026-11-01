@@ -1195,7 +1195,7 @@ export default function Pos(props: PosProps = {}) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Offline (POS) / Online order */}
           <div className="inline-flex items-center rounded-full border border-gray-200 bg-white p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.05)]" role="tablist" aria-label="Order source">
             <button
@@ -1203,7 +1203,7 @@ export default function Pos(props: PosProps = {}) {
               role="tab"
               aria-selected={ordermode === 'offline'}
               onClick={() => setOrdermode('offline')}
-              className={`h-10 rounded-full px-6 text-[10px] font-bold uppercase tracking-wider transition-colors ${ordermode === 'offline' ? 'bg-primary text-primary-ink shadow' : 'text-[#111111] hover:bg-gray-50'}`}
+              className={`h-10 rounded-full px-3 sm:px-6 text-[10px] font-bold uppercase tracking-wider transition-colors ${ordermode === 'offline' ? 'bg-primary text-primary-ink shadow' : 'text-[#111111] hover:bg-gray-50'}`}
             >
               Offline (POS)
             </button>
@@ -1212,7 +1212,7 @@ export default function Pos(props: PosProps = {}) {
               role="tab"
               aria-selected={ordermode === 'online'}
               onClick={() => setOrdermode('online')}
-              className={`inline-flex h-10 items-center gap-2 rounded-full px-6 text-[10px] font-bold uppercase tracking-wider transition-colors ${ordermode === 'online' ? 'bg-primary text-primary-ink shadow' : 'text-[#111111] hover:bg-gray-50'}`}
+              className={`inline-flex h-10 items-center gap-2 rounded-full px-3 sm:px-6 text-[10px] font-bold uppercase tracking-wider transition-colors ${ordermode === 'online' ? 'bg-primary text-primary-ink shadow' : 'text-[#111111] hover:bg-gray-50'}`}
             >
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
               Online Order
@@ -1299,11 +1299,11 @@ export default function Pos(props: PosProps = {}) {
                   className={`${posInput} !font-black`}
                 />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 md:flex md:flex-col md:justify-end">
                 <label htmlFor="pos-reference-number" className={posLabel}>Reference Number (Optional)</label>
                 <input id="pos-reference-number" name="referenceNumber" placeholder="Enter reference number" value={referenceNumber} onChange={e => setReferenceNumber(e.target.value)} className={posInput} />
               </div>
-              <div className="min-w-0 md:col-span-2">
+              <div className="min-w-0 md:col-span-2 md:flex md:flex-col md:justify-end">
                 <label htmlFor="pos-remarks" className={posLabel}>Remarks (Optional)</label>
                 <input id="pos-remarks" name="remarks" placeholder="Enter remarks" value={remarks} onChange={e => setRemarks(e.target.value)} className={posInput} />
               </div>
@@ -1680,7 +1680,7 @@ export default function Pos(props: PosProps = {}) {
             {/* Financial option */}
             <div>
               <p className="mb-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]">Financial Option</p>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {(['cash', 'qr', 'card', 'split'] as const).map(mode => (
                   <button
                     key={mode}
@@ -1823,7 +1823,7 @@ export default function Pos(props: PosProps = {}) {
       {/* Variant Picker Modal for Multi-Variant Products */}
       {variantPickerProduct && (
         createPortal(<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full border border-[#F3F4F6] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl max-h-[calc(100dvh-2rem)] overflow-y-auto max-w-md w-full border border-[#F3F4F6] shadow-2xl animate-in zoom-in-95 duration-150">
             <div className="p-4 border-b border-[#111111]/20 flex items-center justify-between bg-primary text-white">
               <div>
                 <h3 className="text-sm font-black uppercase tracking-wider text-white">
@@ -1920,7 +1920,7 @@ export default function Pos(props: PosProps = {}) {
       {/* Price Edit & Inventory Confirmation Modal */}
       {priceEditModal.isOpen && priceEditModal.item && (
         createPortal(<div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto animate-in zoom-in-95 duration-200">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-amber-50/50 to-white">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-primary-soft/10 flex items-center justify-center text-primary-hover">

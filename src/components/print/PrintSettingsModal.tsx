@@ -47,7 +47,7 @@ function PrintSettingsDialog({ onClose, onPrint }: Omit<Props, 'open'>) {
       className="fixed inset-0 z-[420] flex items-center justify-center bg-black/60 p-4 print:hidden"
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div role="dialog" aria-modal="true" aria-labelledby="print-settings-title" className="w-full max-w-[460px] overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div role="dialog" aria-modal="true" aria-labelledby="print-settings-title" className="w-full max-w-[460px] max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between bg-[#1F1F1F] px-6 py-4 text-white">
           <h2 id="print-settings-title" className="flex items-center gap-3 text-sm font-black uppercase tracking-[0.12em]">
             <Printer size={18} /> Print Settings

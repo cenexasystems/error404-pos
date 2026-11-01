@@ -75,7 +75,7 @@ export default function SplitPaymentInputs({ idPrefix, total, value, onChange, a
         })}
       </div>
 
-      <div className={`mt-3 grid gap-3 ${visible.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+      <div className={`mt-3 grid gap-3 ${visible.length === 3 ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'}`}>
         {visible.map(c => (
           <label key={c.key} htmlFor={`${idPrefix}-${c.key}`} className="block min-w-0">
             <span className="mb-1.5 block text-[11px] font-bold text-[#111111]">{c.field}</span>

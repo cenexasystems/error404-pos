@@ -297,7 +297,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
           )}
         </div>
 
-        <div style={{ flex: '0 1 300px', minWidth: 240, marginLeft: 'auto' }}>
+        <div className="invoice-summary" style={{ flex: '0 1 300px', minWidth: 240, marginLeft: 'auto' }}>
           {sumRow(<>Subtotal{isGst && <span style={{ fontSize: 9, color: MUTED, marginLeft: 5, letterSpacing: 0.5 }}>EXCL. GST</span>}</>, formatCurrency(subtotal))}
           {discountAmount > 0 && sumRow(`Coupon${couponCode ? ` (${couponCode})` : ''}`, `−${formatCurrency(discountAmount)}`)}
           {manualDiscountAmount > 0 && sumRow('Discount', `−${formatCurrency(manualDiscountAmount)}`)}

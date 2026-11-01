@@ -45,8 +45,8 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="relative min-h-[100dvh] overflow-y-auto bg-gradient-to-br from-white via-[#FAFAFA] to-primary-50 px-4 py-6 font-sans flex flex-col items-center justify-center">
-      <div className="relative w-full max-w-[420px] overflow-hidden rounded-[28px] border border-gray-300 bg-white shadow-[0_30px_70px_-20px_rgba(0,0,0,0.18)]">
+    <div className="relative h-full min-h-0 overflow-y-auto bg-gradient-to-br from-white via-[#FAFAFA] to-primary-50 px-4 py-6 font-sans flex flex-col items-center">
+      <div className="relative my-auto shrink-0 w-full max-w-[420px] overflow-hidden rounded-[28px] border border-gray-300 bg-white shadow-[0_30px_70px_-20px_rgba(0,0,0,0.18)]">
         <div className="h-1.5 w-full bg-primary" />
         <div className="px-6 pb-6 pt-7 sm:px-9">
           {/* Brand */}

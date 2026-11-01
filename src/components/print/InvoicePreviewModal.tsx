@@ -29,12 +29,12 @@ export default function InvoicePreviewModal({ invoice, onClose, fullPageUrl, act
       onMouseDown={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div role="dialog" aria-modal="true" aria-label={`Invoice ${number}`} className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-[900px] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        <div className="flex shrink-0 items-center justify-between gap-3 bg-[#1F1F1F] px-4 py-3.5 text-white sm:px-6">
+        <div className="flex flex-wrap shrink-0 items-center justify-between gap-3 bg-[#1F1F1F] px-4 py-3.5 text-white sm:px-6">
           <h2 className="flex min-w-0 items-center gap-2.5 text-[12px] font-black uppercase tracking-[0.1em] sm:text-sm">
             <Printer size={17} className="shrink-0" />
             <span className="truncate">Invoice Preview • #{number}</span>
           </h2>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {actions}
             {fullPageUrl && (
               <a
@@ -51,7 +51,7 @@ export default function InvoicePreviewModal({ invoice, onClose, fullPageUrl, act
             </button>
           </div>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#F3F4F6] p-3 sm:p-6">
+        <div className="min-h-0 flex-1 overflow-auto overscroll-contain bg-[#F3F4F6] p-3 sm:p-6">
           <div className="mx-auto max-w-[760px] rounded-lg border border-gray-200 bg-white shadow-sm">
             <Invoice {...invoice} />
           </div>
