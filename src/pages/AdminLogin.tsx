@@ -61,7 +61,7 @@ export default function AdminLogin() {
                 />
               </div>
             </div>
-            <h1 className="font-serif text-[26px] sm:text-[28px] leading-tight text-primary" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            <h1 className="font-serif text-[26px] sm:text-[28px] leading-tight text-primary" style={{ fontFamily: '"Times New Roman", Times, serif', fontVariantNumeric: 'lining-nums' }}>
               {BRAND_EN}
             </h1>
             <p className="mt-2 max-w-[340px] text-[10.5px] sm:text-[11px] font-bold uppercase leading-relaxed tracking-[0.18em] text-gray-500">
