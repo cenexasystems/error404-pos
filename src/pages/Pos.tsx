@@ -1251,7 +1251,7 @@ export default function Pos(props: PosProps = {}) {
               Customer Details
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-x-7 gap-y-5">
-              <div className="min-w-0">
+              <div className="min-w-0 md:flex md:flex-col md:justify-end">
                 <label htmlFor="pos-customer-name" className={posLabel}>Customer Name</label>
                 <input
                   id="pos-customer-name"
@@ -1261,10 +1261,10 @@ export default function Pos(props: PosProps = {}) {
                   value={customer.name}
                   onChange={e => setCustomer({ ...customer, name: e.target.value })}
                   placeholder="Walk-in Customer"
-                  className={posInput}
+                  className={`${posInput} md:h-11`}
                 />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 md:flex md:flex-col md:justify-end">
                 <label htmlFor="pos-customer-phone" className={posLabel}>Mobile Number (WhatsApp)</label>
                 <input
                   id="pos-customer-phone"
@@ -1275,10 +1275,10 @@ export default function Pos(props: PosProps = {}) {
                   value={customer.phone}
                   onChange={e => setCustomer({ ...customer, phone: e.target.value })}
                   placeholder="Enter 10-digit number"
-                  className={`${posInput} ${customer.phone && !normalizePhone(customer.phone) ? '!border-red-400 !bg-red-50' : ''}`}
+                  className={`${posInput} md:h-11 ${customer.phone && !normalizePhone(customer.phone) ? '!border-red-400 !bg-red-50' : ''}`}
                 />
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 md:flex md:flex-col md:justify-end">
                 <div className="mb-2.5 flex items-center justify-between gap-2">
                   <label htmlFor="pos-billing-date" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]">
                     <CalendarDays size={15} strokeWidth={1.75} /> Bill Date
@@ -1296,7 +1296,7 @@ export default function Pos(props: PosProps = {}) {
                   type="datetime-local"
                   value={billingDate}
                   onChange={e => setBillingDate(e.target.value)}
-                  className={`${posInput} !font-black`}
+                  className={`${posInput} md:h-11 !font-black`}
                 />
               </div>
               <div className="min-w-0 md:flex md:flex-col md:justify-end">
