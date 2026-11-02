@@ -1,4 +1,4 @@
-import { normalizePhoneForWhatsApp } from '../lib/phone'
+import { normalizePhone, normalizePhoneForWhatsApp } from '../lib/phone'
 import { BRAND_EN, BRAND_INSTAGRAM, BRAND_PHONE_DISPLAY } from '../lib/brand'
 import { db, isDatabaseConfigured } from '../lib/db'
 
@@ -41,6 +41,22 @@ const phoneKey = (phone: string) => normalizePhoneForWhatsApp(phone) || phone.tr
 export interface KnownCustomer { name: string; phone: string }
 
 export const birthdayService = {
+  /** Read only the matching birthday records; preserve the existing local fallback. */
+  async findByPhone(phone: string): Promise<CustomerBirthday[]> {
+    const normalized = normalizePhone(phone)
+    if (!normalized) return []
+    const matches = (row: CustomerBirthday) => normalizePhone(row.phone) === normalized
+    const local = readLocal<CustomerBirthday[]>(LOCAL_KEY, []).filter(matches)
+    if (!isDatabaseConfigured) return local
+    // Wildcards tolerate spaces/punctuation in historical numbers; verify exact digits below.
+    const pattern = `%${normalized.slice(-10).split('').join('%')}%`
+    const { data, error } = await db.from('customer_birthdays')
+      .select('id, name, phone, birth_date, created_at')
+      .ilike('phone', pattern).order('updated_at', { ascending: false }).limit(50)
+    if (error) return local
+    return [...((data || []) as CustomerBirthday[]).filter(matches), ...local]
+  },
+
   async list(): Promise<CustomerBirthday[]> {
     const local = readLocal<CustomerBirthday[]>(LOCAL_KEY, [])
     if (isDatabaseConfigured) {

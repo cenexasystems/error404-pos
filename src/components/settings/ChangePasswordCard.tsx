@@ -1,3 +1,4 @@
+import { PasswordInput } from '../common/PasswordInput'
 import React, { useState, type FormEvent } from 'react'
 import { KeyRound, CheckCircle2, AlertCircle } from 'lucide-react'
 import { changePortalPassword } from '../../lib/db'
@@ -54,11 +55,11 @@ export const ChangePasswordCard: React.FC<{ role: 'admin' | 'staff' }> = ({ role
 
       <div className="grid gap-4 sm:grid-cols-3">
         <label className="block"><span className={label}>{role === 'admin' ? 'Your current admin password' : 'Current password'}</span>
-          <input type="password" className={input} value={current} onChange={e => setCurrent(e.target.value)} autoComplete="current-password" required /></label>
+          <PasswordInput className={input} value={current} onChange={e => setCurrent(e.target.value)} autoComplete="current-password" required /></label>
         <label className="block"><span className={label}>New password</span>
-          <input type="password" className={input} value={next} onChange={e => setNext(e.target.value)} autoComplete="new-password" minLength={6} required /></label>
+          <PasswordInput className={input} value={next} onChange={e => setNext(e.target.value)} autoComplete="new-password" minLength={6} required /></label>
         <label className="block"><span className={label}>Confirm new password</span>
-          <input type="password" className={input} value={confirm} onChange={e => setConfirm(e.target.value)} autoComplete="new-password" minLength={6} required /></label>
+          <PasswordInput className={input} value={confirm} onChange={e => setConfirm(e.target.value)} autoComplete="new-password" minLength={6} required /></label>
       </div>
 
       {message && (

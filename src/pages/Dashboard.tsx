@@ -1,3 +1,4 @@
+import { CouponShareModal } from '../components/coupons/CouponShareModal'
 import { advanceFinalInvoiceProps } from '../lib/advanceInvoice'
 import React, { useCallback, useEffect, useState, useMemo, useRef, type FormEvent } from 'react'
 import {
@@ -257,6 +258,7 @@ export default function Dashboard() {
   const [categoryNotice, setCategoryNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [categoryManagerOpen, setCategoryManagerOpen] = useState(false)
   const [openCategoryMenuId, setOpenCategoryMenuId] = useState<string | number | null>(null)
+  const [sharingCoupon, setSharingCoupon] = useState<DashboardCoupon | null>(null)
   const [coupons, setCoupons] = useState<DashboardCoupon[]>([])
   const [couponForm, setCouponForm] = useState<{
     code: string
@@ -2029,6 +2031,7 @@ export default function Dashboard() {
               key={item.id}
               onClick={() => handleTabClick(item.id)}
               title={item.label}
+              aria-label={item.label}
               className={[
                 'shrink-0 flex flex-col lg:flex-row items-center justify-center lg:justify-start',
                 'gap-1 lg:gap-4',
@@ -2042,7 +2045,7 @@ export default function Dashboard() {
               <span className="shrink-0 flex items-center">
                 {item.icon}
               </span>
-              <span className={`block max-w-[100px] lg:max-w-none truncate text-left transition-all duration-200 ${sidebarCollapsed ? 'lg:w-0 lg:opacity-0 lg:overflow-hidden' : 'opacity-100 lg:flex-1'}`}>
+              <span className={`hidden sm:block max-w-[100px] lg:max-w-none truncate text-left transition-all duration-200 ${sidebarCollapsed ? 'lg:w-0 lg:opacity-0 lg:overflow-hidden' : 'opacity-100 lg:flex-1'}`}>
                 {item.label}
               </span>
               {!!item.badge && !sidebarCollapsed && (
@@ -4507,6 +4510,10 @@ export default function Dashboard() {
                           </div>
 
                           <div className="flex shrink-0 items-center gap-2">
+                            <button type="button" onClick={() => setSharingCoupon(coupon)} aria-label={`Share coupon ${coupon.code} on WhatsApp`} title="Share coupon on WhatsApp"
+                              className="flex h-11 w-11 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100">
+                              <MessageCircle size={17} />
+                            </button>
                             <button
                               onClick={() => void toggleCoupon(coupon)}
                               className={`rounded-lg px-3 py-1.5 text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer ${
@@ -4709,6 +4716,8 @@ export default function Dashboard() {
           if (props) printBill(props, settings)
         }}
       />
+
+      {sharingCoupon && <CouponShareModal key={sharingCoupon.id} coupon={sharingCoupon} onClose={() => setSharingCoupon(null)} />}
 
       {/* Edit Order Details Modal */}
       {editingOrder && (

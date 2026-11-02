@@ -1,3 +1,4 @@
+import { findReturningCustomer } from '../services/returningCustomerService'
 import { birthdayService } from '../services/birthdayService'
 import { useEffect, useMemo, useRef, useState, useCallback, type FormEvent } from 'react'
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -180,6 +181,41 @@ export default function Pos(props: PosProps = {}) {
   const [remarks, setRemarks] = useState('')
   const [referenceNumber, setReferenceNumber] = useState('')
   const [birthDate, setBirthDate] = useState('') // YYYY-MM-DD, optional
+  const customerEditVersion = useRef({ name: 0, birthDate: 0 })
+  const autofilledCustomer = useRef({ name: '', birthDate: '' })
+  const normalizedCustomerPhone = normalizePhone(customer.phone)
+
+  useEffect(() => {
+    if (!normalizedCustomerPhone) return
+    let cancelled = false
+    const version = { ...customerEditVersion.current }
+    const timer = window.setTimeout(() => {
+      void findReturningCustomer(normalizedCustomerPhone).then(found => {
+        if (cancelled || !found) return
+        if (found.name && customerEditVersion.current.name === version.name) {
+          setCustomer(current => ({ ...current, name: found.name }))
+          autofilledCustomer.current.name = found.name
+        }
+        if (found.birthDate && customerEditVersion.current.birthDate === version.birthDate) {
+          setBirthDate(found.birthDate)
+          autofilledCustomer.current.birthDate = found.birthDate
+        }
+      }).catch(() => { /* Lookup must never interrupt billing or manual entry. */ })
+    }, 300)
+    return () => { cancelled = true; window.clearTimeout(timer) }
+  }, [normalizedCustomerPhone])
+
+  const changeCustomerPhone = (phone: string) => {
+    if (normalizePhone(phone) !== normalizedCustomerPhone) {
+      const previous = autofilledCustomer.current
+      setCustomer(current => ({ ...current, phone, name: previous.name && current.name === previous.name ? '' : current.name }))
+      setBirthDate(current => previous.birthDate && current === previous.birthDate ? '' : current)
+      autofilledCustomer.current = { name: '', birthDate: '' }
+    } else {
+      setCustomer(current => ({ ...current, phone }))
+    }
+  }
+
   const [billingDate, setBillingDate] = useState('') // '' = use current date/time
   const [paymentType, setPaymentType] = useState<'cash' | 'qr' | 'card' | 'split'>('cash')
   const [splitForm, setSplitForm] = useState<SplitInputValue>(emptySplitInput())
@@ -1186,7 +1222,7 @@ export default function Pos(props: PosProps = {}) {
   return (
     <div data-embedded={embeddedMode} className={`flex flex-col bg-white print:hidden overflow-x-hidden ${embeddedMode ? '' : 'h-full overflow-y-auto hide-scrollbar'}`} style={embeddedMode ? undefined : { WebkitOverflowScrolling: 'touch' }}>
       {/* Header */}
-      <div className={`shrink-0 flex flex-col gap-4 pb-6 mb-6 border-b border-gray-200 sm:flex-row sm:items-center sm:justify-between ${embeddedMode ? '' : 'px-4 pt-5 md:px-8'}`}>
+      <div className={`shrink-0 flex flex-col gap-3 sm:gap-4 pb-4 sm:pb-6 mb-4 sm:mb-6 border-b border-gray-200 sm:flex-row sm:items-center sm:justify-between ${embeddedMode ? '' : 'px-4 pt-5 md:px-8'}`}>
         <div className="flex items-stretch gap-4 min-w-0">
           <span className="w-[6px] shrink-0 rounded-full bg-primary" aria-hidden />
           <div className="min-w-0">
@@ -1239,18 +1275,18 @@ export default function Pos(props: PosProps = {}) {
       </div>
 
       {/* Main Content Split */}
-      <div className={`grid grid-cols-1 xl:grid-cols-[minmax(0,1.75fr)_minmax(340px,1fr)] gap-6 xl:gap-10 pb-6 items-start ${embeddedMode ? '' : 'px-4 md:px-8'}`} style={{ touchAction: 'pan-y' }}>
+      <div className={`grid grid-cols-1 xl:grid-cols-[minmax(0,1.75fr)_minmax(340px,1fr)] gap-4 sm:gap-6 xl:gap-10 pb-6 items-start ${embeddedMode ? '' : 'px-4 md:px-8'}`} style={{ touchAction: 'pan-y' }}>
 
         {/* LEFT COLUMN */}
-        <div className="flex flex-col gap-6 min-w-0">
+        <div className="flex flex-col gap-4 sm:gap-6 min-w-0">
 
           {/* Customer Details Card */}
           <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
-            <h3 className="mb-6 flex items-center gap-3 text-base font-black tracking-tight text-[#111111]">
+            <h3 className="mb-4 sm:mb-6 flex items-center gap-3 text-base font-black tracking-tight text-[#111111]">
               <User size={20} strokeWidth={1.75} />
               Customer Details
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-7 gap-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-7 gap-y-4 sm:gap-y-5">
               <div className="min-w-0 md:flex md:flex-col md:justify-end">
                 <label htmlFor="pos-customer-name" className={posLabel}>Customer Name</label>
                 <input
@@ -1259,7 +1295,7 @@ export default function Pos(props: PosProps = {}) {
                   autoComplete="name"
                   type="text"
                   value={customer.name}
-                  onChange={e => setCustomer({ ...customer, name: e.target.value })}
+                  onChange={e => { customerEditVersion.current.name++; autofilledCustomer.current.name = ''; setCustomer({ ...customer, name: e.target.value }) }}
                   placeholder="Walk-in Customer"
                   className={`${posInput} md:h-11`}
                 />
@@ -1273,7 +1309,7 @@ export default function Pos(props: PosProps = {}) {
                   type="text"
                   inputMode="tel"
                   value={customer.phone}
-                  onChange={e => setCustomer({ ...customer, phone: e.target.value })}
+                  onChange={e => changeCustomerPhone(e.target.value)}
                   placeholder="Enter 10-digit number"
                   className={`${posInput} md:h-11 ${customer.phone && !normalizePhone(customer.phone) ? '!border-red-400 !bg-red-50' : ''}`}
                 />
@@ -1315,7 +1351,7 @@ export default function Pos(props: PosProps = {}) {
                   type="date"
                   max={new Date().toISOString().slice(0, 10)}
                   value={birthDate}
-                  onChange={e => setBirthDate(e.target.value)}
+                  onChange={e => { customerEditVersion.current.birthDate++; autofilledCustomer.current.birthDate = ''; setBirthDate(e.target.value) }}
                   className={posInput}
                 />
               </div>
@@ -1494,7 +1530,7 @@ export default function Pos(props: PosProps = {}) {
             </span>
           </div>
 
-          <div className="space-y-6 p-4 sm:p-6">
+          <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
             {/* Summary */}
             <div className="rounded-xl border border-gray-200 px-4 py-3.5">
               <dl className="space-y-3.5 text-sm">
