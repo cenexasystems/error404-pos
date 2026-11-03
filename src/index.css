@@ -474,3 +474,21 @@ input[type="month"] {
     max-width: 100%;
   }
 }
+
+/* Native iPhone date controls must shrink to the billing field's width. */
+@media screen and (max-width: 639px) {
+  .pos-panel input[type="date"],
+  .pos-panel input[type="datetime-local"] {
+    display: block;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+  .pos-panel input::-webkit-date-and-time-value {
+    min-width: 0;
+    min-height: 1.5em;
+    text-align: left;
+  }
+}

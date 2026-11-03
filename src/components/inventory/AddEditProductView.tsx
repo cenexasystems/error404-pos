@@ -837,15 +837,15 @@ export const AddEditProductView: React.FC<{
                             e.stopPropagation()
                             void startEditProduct(p)
                           }}
-                          className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
+                          className={`p-1.5 rounded-lg border transition-all cursor-pointer hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-primary-soft active:bg-primary-hover ${
                             isSelected
-                              ? 'bg-primary text-primary-100 border-primary-soft shadow-xs'
-                              : 'border-gray-200 bg-white text-gray-600 hover:bg-primary hover:text-primary-100 hover:border-black'
+                              ? 'bg-primary text-white border-primary shadow-xs'
+                              : 'border-primary bg-primary text-white'
                           }`}
                           title={`Edit "${p.name}"`}
                           aria-label={`Edit ${p.name}`}
                         >
-                          <Edit2 size={13} className={isSelected ? 'text-primary-hover' : ''} />
+                          <Edit2 size={13} className="text-white" />
                         </button>
 
                         <button

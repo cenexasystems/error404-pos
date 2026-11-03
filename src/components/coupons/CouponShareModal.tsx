@@ -14,12 +14,12 @@ type ShareCoupon = {
 
 function defaultMessage(coupon: ShareCoupon) {
   const details = [
-    `🎟 Coupon Code: ${coupon.code}`,
-    `${coupon.percentage}% OFF`,
-    ...(coupon.min_order_value > 0 ? [`Minimum purchase: ${formatCurrency(coupon.min_order_value)}`] : []),
-    ...(coupon.expiry_date ? [`Expiry date: ${new Date(coupon.expiry_date).toLocaleDateString('en-IN')}`] : []),
+    `🏷️ Coupon: ${coupon.code}`,
+    `💰 Offer: ${coupon.percentage}% OFF`,
+    ...(coupon.min_order_value > 0 ? [`🛍️ Minimum purchase: ${formatCurrency(coupon.min_order_value)}`] : []),
+    ...(coupon.expiry_date ? [`📅 Valid Until: ${new Date(coupon.expiry_date).toLocaleDateString('en-IN')}`] : []),
   ]
-  return `Hello! 👋\n\nWelcome to ${BRAND_EN}!\n\nWe have a special offer for you.\n\n${details.join('\n')}\n\nUse this coupon on your purchase and enjoy your special discount.\n\nWe look forward to seeing you!\n\n– ${BRAND_EN}`
+  return `🎉 SPECIAL OFFER — ${coupon.code} 🎉\n\nEnjoy an exclusive offer from ${BRAND_EN}!\n\n${details.join('\n')}\n\nUse this coupon during your purchase and enjoy the offer.\n\nShop with us at ${BRAND_EN} 🛍️`
 }
 
 export function CouponShareModal({ coupon, onClose }: { coupon: ShareCoupon; onClose: () => void }) {

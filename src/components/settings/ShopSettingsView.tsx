@@ -11,7 +11,7 @@ import { useStockAlertPrefs } from '../../store/stockAlertPrefs'
 import { ChangePasswordCard } from './ChangePasswordCard'
 import { alarmSound } from '../../lib/alarmAudio'
 
-const card = 'bg-white rounded-xl border border-gray-200 shadow-sm p-4 sm:p-6'
+const card = 'bg-white rounded-xl border border-gray-200 shadow-sm p-3 sm:p-6'
 const label = 'block text-[11px] font-black uppercase tracking-[0.12em] text-[#4B5563] mb-2'
 const inputBase =
   'w-full h-10 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-[#111111] placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition'
@@ -157,7 +157,7 @@ export const ShopSettingsView: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-sm:space-y-4">
       {/* Header */}
       <div className={`${card} !py-5 flex items-center gap-4`}>
         <div className="flex h-10 w-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-ink">
@@ -171,9 +171,9 @@ export const ShopSettingsView: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 max-sm:gap-4 items-start">
         {/* Left column */}
-        <div className="space-y-6">
+        <div className="space-y-6 max-sm:space-y-4">
           <section className={card}>
             <SectionTitle icon={<Palette size={18} />} title="Appearance" />
             <p className="text-[13px] font-medium text-[#4B5563] mb-5">

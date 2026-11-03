@@ -320,7 +320,7 @@ export default function AdvanceOrders({ onOrderCompleted }: AdvanceOrdersProps =
   const periods: Array<[DateFilter, string]> = [['all', 'All Time'], ['today', 'Today'], ['week', 'This Week'], ['month', 'This Month'], ['year', 'This Year']]
   const iconBtn = 'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors cursor-pointer'
 
-  return <div className="space-y-6">
+  return <div className="space-y-6 max-sm:space-y-4">
     {finalBill && !preview && createPortal((() => {
       const { order, props, received, method } = finalBill
       const isGst = (props.cgstAmount || 0) + (props.sgstAmount || 0) > 0
@@ -328,7 +328,7 @@ export default function AdvanceOrders({ onOrderCompleted }: AdvanceOrdersProps =
       const btn = 'inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-3 text-[11px] font-black uppercase tracking-wider text-[#111111] hover:bg-gray-50'
       return (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label="Bill generated">
-          <div className="max-h-full w-full max-w-[680px] overflow-y-auto rounded-3xl bg-white p-5 shadow-2xl sm:p-8">
+          <div className="max-h-full w-full max-w-[680px] overflow-y-auto rounded-3xl bg-white p-5 max-sm:p-3 shadow-2xl sm:p-8">
             <div className="flex items-start justify-between gap-4 border-b border-gray-200 pb-4">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2.5">
@@ -343,7 +343,7 @@ export default function AdvanceOrders({ onOrderCompleted }: AdvanceOrdersProps =
               </button>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-gray-200 p-5">
+            <div className="mt-4 rounded-2xl border border-gray-200 p-5 max-sm:p-3">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                 <p className="text-[11px] font-black uppercase tracking-[0.14em] text-gray-400">Payment Receipt</p>
                 <span className="rounded-md bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-primary">{chip}</span>
@@ -375,7 +375,7 @@ export default function AdvanceOrders({ onOrderCompleted }: AdvanceOrdersProps =
               </button>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-gray-200 p-5">
+            <div className="mt-4 rounded-2xl border border-gray-200 p-5 max-sm:p-3">
               <p className="border-b border-gray-100 pb-3 text-[11px] font-black uppercase tracking-[0.14em] text-gray-400">Items Sold</p>
               <div className="space-y-2.5 pt-3">
                 {props.items.map((item, i) => (
@@ -577,7 +577,7 @@ export default function AdvanceOrders({ onOrderCompleted }: AdvanceOrdersProps =
 
     {createOpen && createPortal(
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-        <form onSubmit={create} className="max-h-full w-full max-w-4xl overflow-hidden overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl border border-[#F3F4F6]">
+        <form onSubmit={create} className="max-h-full w-full max-w-4xl overflow-hidden overflow-y-auto rounded-3xl bg-white p-6 max-sm:p-3 shadow-2xl border border-[#F3F4F6]">
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h3 className="text-xl font-black text-[#111111]">Create Advance Order</h3>
@@ -625,7 +625,7 @@ export default function AdvanceOrders({ onOrderCompleted }: AdvanceOrdersProps =
 
     {paymentOrder && createPortal(
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-        <form onSubmit={receivePayment} className="w-full max-w-md max-h-full overflow-hidden overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl border border-[#F3F4F6]">
+        <form onSubmit={receivePayment} className="w-full max-w-md max-h-full overflow-hidden overflow-y-auto rounded-3xl bg-white p-6 max-sm:p-3 shadow-2xl border border-[#F3F4F6]">
           <div className="mb-5 flex items-start justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-wider text-emerald-600 font-mono">{paymentOrder.deposit_id}</p>
@@ -698,7 +698,7 @@ export default function AdvanceOrders({ onOrderCompleted }: AdvanceOrdersProps =
           </div>
 
           {/* Scrollable Drawer Body */}
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-6">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-6 max-sm:space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
                 ['Customer', selected.customer_name],

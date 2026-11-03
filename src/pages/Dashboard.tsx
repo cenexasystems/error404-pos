@@ -2035,7 +2035,7 @@ export default function Dashboard() {
               className={[
                 'shrink-0 flex flex-col lg:flex-row items-center justify-center lg:justify-start',
                 'gap-1 lg:gap-4',
-                'h-[48px] min-w-[64px] lg:min-w-0 lg:w-full lg:h-auto',
+                'h-[48px] max-sm:h-11 min-w-[64px] max-sm:min-w-14 lg:min-w-0 lg:w-full lg:h-auto',
                 sidebarCollapsed ? 'lg:w-[52px] lg:justify-center mx-auto' : 'lg:px-4',
                 'px-1.5 py-1 lg:py-3.5',
                 'rounded-xl font-bold uppercase tracking-wider text-[9.5px] lg:text-xs transition-colors overflow-hidden cursor-pointer',
@@ -2083,7 +2083,7 @@ export default function Dashboard() {
       {/* Main */}
       <main className="flex flex-1 min-w-0 min-h-0 flex-col overflow-hidden">
         <div className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto px-3 sm:px-8 lg:px-12 pt-3 pb-2 bg-white">
-        <div className="lg:hidden h-4" />
+        <div className="hidden sm:block lg:hidden h-4" />
 
         {/* ΓöÇΓöÇ ANALYTICS TAB ΓöÇΓöÇ */}
 
@@ -2971,17 +2971,8 @@ export default function Dashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
-                  <div className="xl:col-span-2">
+                  <div className="xl:col-span-2 space-y-6">
                     <YearTrendCard year={analytics.chartYear} months={analytics.monthlyTrend} />
-                  </div>
-                  <div className="space-y-6">
-                    <OrderSourceCard offline={analytics.offlineOrderCount} online={analytics.onlineBillCount} />
-                    <TopItemsCard title="Top Items by Revenue" items={analytics.topProducts} />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                  <div className="xl:col-span-2">
                     <WeekTrendCard
                       weekLabel={`Week ${(() => { const now = new Date(); const start = new Date(now.getFullYear(), 0, 1); const diff = Math.floor((now.getTime() - start.getTime()) / 86400000); return Math.ceil((diff + start.getDay() + 1) / 7) })()} of ${new Date().getFullYear()}`}
                       days={analytics.weeklySales}
@@ -2989,24 +2980,28 @@ export default function Dashboard() {
                     />
                   </div>
 
-                  <div className="bg-white rounded-card border border-borderLight p-6 shadow-soft">
-                    <h3 className="text-[16px] font-bold text-[#111111] mb-4">Top Products This Week</h3>
-                    <div className="space-y-3">
-                      {analytics.topProducts.slice(0, 5).map((p, i) => (
-                        <div key={`${p.name}-${i}`} className="flex items-center justify-between rounded-xl bg-[#F9FAFB] p-3">
-                          <div className="min-w-0">
-                            <p className="truncate text-[13px] font-bold text-[#111111]">{p.name}</p>
-                            <p className="text-[11px] text-[#6B7280]">{p.billCount} bills</p>
+                  <div className="space-y-6">
+                    <OrderSourceCard offline={analytics.offlineOrderCount} online={analytics.onlineBillCount} />
+                    <TopItemsCard title="Top Items by Revenue" items={analytics.topProducts} />
+                    <div className="bg-white rounded-card border border-borderLight p-6 shadow-soft">
+                      <h3 className="text-[16px] font-bold text-[#111111] mb-4">Top Products This Week</h3>
+                      <div className="space-y-3">
+                        {analytics.topProducts.slice(0, 5).map((p, i) => (
+                          <div key={`${p.name}-${i}`} className="flex items-center justify-between rounded-xl bg-[#F9FAFB] p-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-[13px] font-bold text-[#111111]">{p.name}</p>
+                              <p className="text-[11px] text-[#6B7280]">{p.billCount} bills</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[13px] font-black text-[#111111]">{Math.round(p.qty)}</p>
+                              <p className="text-[11px] font-bold text-[#10B981]">{formatCurrency(p.revenue)}</p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-[13px] font-black text-[#111111]">{Math.round(p.qty)}</p>
-                            <p className="text-[11px] font-bold text-[#10B981]">{formatCurrency(p.revenue)}</p>
-                          </div>
-                        </div>
-                      ))}
-                      {analytics.topProducts.length === 0 && (
-                        <p className="text-[13px] text-[#6B7280]">No completed product sales yet.</p>
-                      )}
+                        ))}
+                        {analytics.topProducts.length === 0 && (
+                          <p className="text-[13px] text-[#6B7280]">No completed product sales yet.</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3444,7 +3439,7 @@ export default function Dashboard() {
 
         {/* ── ORDER MANAGEMENT ── */}
         {tab === 'history' && (
-          <div className="space-y-6">
+          <div className="space-y-6 max-sm:space-y-4">
             <div className="flex flex-col gap-5 min-[1750px]:flex-row min-[1750px]:items-center min-[1750px]:justify-between">
               <div className="shrink-0">
                 <h2 className="whitespace-nowrap text-[28px] font-black leading-tight tracking-tight text-[#111111]">{l('Order History', 'ஆர்டர் வரலாறு')}</h2>
@@ -3587,7 +3582,7 @@ export default function Dashboard() {
                           <p className="text-[#9CA3AF] uppercase text-[10px] sm:text-[11px] font-black leading-tight">Payment</p>
                           <p className="font-semibold text-[#374151] break-words">{formatPaymentLabel(o.payment_mode || o.payment_method, o.split_details) || '—'}</p>
                         </div>
-                        {Boolean(o.address) && (
+                        {Boolean(o.address) && !/^(?:(?:POS|POC)\s+)?Counter$/i.test(o.address.trim()) && (
                           <div className="col-span-2 mt-1 grid grid-cols-2 gap-x-3 gap-y-2.5 border-t border-[#F3F4F6] pt-3">
                             {Boolean(o.address) && (
                               <div className="col-span-2 min-w-0">
@@ -3710,12 +3705,6 @@ export default function Dashboard() {
                                   <span>{l('Edit Order Details', 'விவரங்களை திருத்து')}</span>
                                 </button>
                               </div>
-                              {o.address === 'POS Counter' && (
-                                <div className="text-[12px]">
-                                  <p className="text-[10px] font-black uppercase text-[#9CA3AF] tracking-wider mb-1">Counter</p>
-                                  <p className="font-semibold text-[#374151]">POS Counter</p>
-                                </div>
-                              )}
                               {(() => {
                                 const itemsSubtotal = getOrderWhatsAppPreview(o)?.subtotal ?? 0
                                 const rows: Array<[string, string, string?]> = []
@@ -4229,7 +4218,7 @@ export default function Dashboard() {
 
         {/* ——— COUPON MANAGEMENT (BLACK & GOLD PREMIUM THEME) ——— */}
         {tab === 'coupons' && (
-          <div className="space-y-6">
+          <div className="space-y-6 max-sm:space-y-4">
             {/* Header with Title & Refresh Action */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -4252,7 +4241,7 @@ export default function Dashboard() {
             {/* Stat Cards matching POS Analytics */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               {/* Card 1: Total Coupons */}
-              <div className="bg-white rounded-card border border-borderLight p-5 shadow-soft flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-card border border-borderLight p-5 max-sm:p-3 shadow-soft flex flex-col justify-between hover:shadow-md transition-shadow">
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <p className="text-[11px] font-bold text-[#111111] uppercase tracking-wider">Total Coupons</p>
@@ -4268,7 +4257,7 @@ export default function Dashboard() {
               </div>
 
               {/* Card 2: Active Coupons */}
-              <div className="bg-white rounded-card border border-borderLight p-5 shadow-soft flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-card border border-borderLight p-5 max-sm:p-3 shadow-soft flex flex-col justify-between hover:shadow-md transition-shadow">
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <p className="text-[11px] font-bold text-[#111111] uppercase tracking-wider">Active Coupons</p>
@@ -4284,7 +4273,7 @@ export default function Dashboard() {
               </div>
 
               {/* Card 3: Total Used */}
-              <div className="bg-white rounded-card border border-borderLight p-5 shadow-soft flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div className="bg-white rounded-card border border-borderLight p-5 max-sm:p-3 shadow-soft flex flex-col justify-between hover:shadow-md transition-shadow">
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <p className="text-[11px] font-bold text-[#111111] uppercase tracking-wider">Total Redemptions</p>
@@ -4307,9 +4296,9 @@ export default function Dashboard() {
             </div>
 
             {/* Main Form & Catalog Columns */}
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-[400px_minmax(0,1fr)]">
+            <div className="grid grid-cols-1 gap-6 max-sm:gap-4 xl:grid-cols-[400px_minmax(0,1fr)]">
               {/* Form Card */}
-              <form onSubmit={saveCoupon} className="bg-white rounded-card border border-borderLight p-6 shadow-soft space-y-4 flex flex-col justify-between">
+              <form onSubmit={saveCoupon} className="bg-white rounded-card border border-borderLight p-6 max-sm:p-3 shadow-soft space-y-4 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
                     <div>
@@ -4445,7 +4434,7 @@ export default function Dashboard() {
               </form>
 
               {/* Coupons List Card */}
-              <div className="bg-white rounded-card border border-borderLight p-6 shadow-soft flex flex-col">
+              <div className="bg-white rounded-card border border-borderLight p-6 max-sm:p-3 shadow-soft flex flex-col">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-100">
                   <div className="flex items-center gap-2.5">
                     <h3 className="text-base font-black text-[#111111]">

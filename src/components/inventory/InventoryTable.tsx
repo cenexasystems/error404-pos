@@ -218,7 +218,7 @@ export const InventoryTable: React.FC = () => {
   const rowBtn = 'inline-flex h-10 items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3.5 text-[10px] font-bold uppercase tracking-wide text-[#374151] transition-colors hover:bg-gray-50 cursor-pointer disabled:cursor-not-allowed disabled:opacity-40'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-sm:space-y-4">
       {/* HEADER */}
       <div className="flex flex-col gap-5 min-[1750px]:flex-row min-[1750px]:items-start min-[1750px]:justify-between">
         <div className="shrink-0">

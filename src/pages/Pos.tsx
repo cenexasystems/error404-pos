@@ -141,9 +141,9 @@ const recalc = (item: PosItem, nextQty: number): PosItem => {
 
 
 // ── Billing panel styles ───────────────────────────────────────────────────
-const posLabel = 'mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-[#000000]'
+const posLabel = 'mb-2 max-sm:mb-1 block text-[10px] font-bold uppercase tracking-[0.15em] text-[#000000]'
 const posSideLabel = 'mb-2 block text-[10px] font-bold uppercase tracking-[0.15em] text-[#000000]'
-const posInput = 'w-full min-w-0 rounded-lg border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-[#000000] placeholder:text-[#000000]/70 focus:border-primary focus:outline-none'
+const posInput = 'max-sm:h-10 max-sm:px-3 max-sm:py-1.5 w-full min-w-0 rounded-lg border border-black/10 bg-white px-4 py-2.5 text-sm font-semibold text-[#000000] placeholder:text-[#000000]/70 focus:border-primary focus:outline-none'
 const posToolBtn = 'inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-[#000000] transition-colors hover:bg-gray-50 disabled:opacity-40'
 
 // ── Category colours ───────────────────────────────────────────────────────
@@ -1220,13 +1220,13 @@ export default function Pos(props: PosProps = {}) {
 
   // ══ MAIN POS SCREEN ══════════════════════════════════════════════════
   return (
-    <div data-embedded={embeddedMode} className={`flex flex-col bg-white print:hidden overflow-x-hidden ${embeddedMode ? '' : 'h-full overflow-y-auto hide-scrollbar'}`} style={embeddedMode ? undefined : { WebkitOverflowScrolling: 'touch' }}>
+    <div data-embedded={embeddedMode} className={`pos-panel flex flex-col bg-white print:hidden overflow-x-hidden ${embeddedMode ? '' : 'h-full overflow-y-auto hide-scrollbar'}`} style={embeddedMode ? undefined : { WebkitOverflowScrolling: 'touch' }}>
       {/* Header */}
-      <div className={`shrink-0 flex flex-col gap-3 sm:gap-4 pb-4 sm:pb-6 mb-4 sm:mb-6 border-b border-gray-200 sm:flex-row sm:items-center sm:justify-between ${embeddedMode ? '' : 'px-4 pt-5 md:px-8'}`}>
+      <div className={`shrink-0 flex flex-col gap-3 sm:gap-4 pb-3 sm:pb-6 mb-3 sm:mb-6 border-b border-gray-200 sm:flex-row sm:items-center sm:justify-between ${embeddedMode ? '' : 'px-4 pt-5 md:px-8'}`}>
         <div className="flex items-stretch gap-4 min-w-0">
           <span className="w-[6px] shrink-0 rounded-full bg-primary" aria-hidden />
           <div className="min-w-0">
-            <h2 className="text-xl font-black leading-tight tracking-tight text-[#111111]">POS Billing Panel</h2>
+            <h2 className="max-sm:text-lg text-xl font-black leading-tight tracking-tight text-[#111111]">POS Billing Panel</h2>
             <p className="text-[11px] font-semibold text-[#111111]">Quick Invoice generator &amp; database synced checkout</p>
           </div>
         </div>
@@ -1281,12 +1281,12 @@ export default function Pos(props: PosProps = {}) {
         <div className="flex flex-col gap-4 sm:gap-6 min-w-0">
 
           {/* Customer Details Card */}
-          <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
-            <h3 className="mb-4 sm:mb-6 flex items-center gap-3 text-base font-black tracking-tight text-[#111111]">
+          <section className="rounded-xl border border-gray-200 bg-white p-3 sm:p-6 shadow-sm">
+            <h3 className="mb-3 sm:mb-6 flex items-center gap-2 sm:gap-3 text-[15px] sm:text-base font-black tracking-tight text-[#111111]">
               <User size={20} strokeWidth={1.75} />
               Customer Details
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-7 gap-y-4 sm:gap-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-7 gap-y-3 sm:gap-y-5">
               <div className="min-w-0 md:flex md:flex-col md:justify-end">
                 <label htmlFor="pos-customer-name" className={posLabel}>Customer Name</label>
                 <input
@@ -1315,7 +1315,7 @@ export default function Pos(props: PosProps = {}) {
                 />
               </div>
               <div className="min-w-0 md:flex md:flex-col md:justify-end">
-                <div className="mb-2.5 flex items-center justify-between gap-2">
+                <div className="mb-2.5 max-sm:mb-1 flex items-center justify-between gap-2">
                   <label htmlFor="pos-billing-date" className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#111111]">
                     <CalendarDays size={15} strokeWidth={1.75} /> Bill Date
                   </label>
@@ -1359,7 +1359,7 @@ export default function Pos(props: PosProps = {}) {
           </section>
 
           {/* Order Items Card */}
-          <section className="flex min-h-[420px] flex-col rounded-xl border border-gray-200 bg-white p-4 sm:p-6 shadow-sm">
+          <section className="flex min-h-[420px] max-sm:min-h-[240px] flex-col rounded-xl border border-gray-200 bg-white p-3 sm:p-6 shadow-sm">
             <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <h3 className="flex items-center gap-3 text-base font-black tracking-tight text-[#111111]">
                 <Receipt size={20} strokeWidth={1.75} />
@@ -1519,7 +1519,7 @@ export default function Pos(props: PosProps = {}) {
 
         {/* RIGHT COLUMN — Current Order */}
         <aside className="xl:sticky xl:top-4 rounded-xl border border-gray-200 bg-white shadow-sm">
-          <div className="flex items-center justify-between gap-3 border-b border-gray-200 p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-3 border-b border-gray-200 p-3 sm:p-6">
             <h3 className="flex items-center gap-3 text-base font-black tracking-tight text-[#111111]">
               <ShoppingBag size={20} strokeWidth={1.75} />
               Current Order
@@ -1530,7 +1530,7 @@ export default function Pos(props: PosProps = {}) {
             </span>
           </div>
 
-          <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
+          <div className="space-y-3 sm:space-y-6 p-3 sm:p-6">
             {/* Summary */}
             <div className="rounded-xl border border-gray-200 px-4 py-3.5">
               <dl className="space-y-3.5 text-sm">

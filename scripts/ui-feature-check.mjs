@@ -28,7 +28,7 @@ for(const role of ['admin','staff']){
  }
  if(role==='admin'){await form.getByRole('tab',{name:'Staff password'}).click();assert.equal(await form.locator('input[type=password]').count(),3)}
  console.log(role,'login, permissions and password toggles passed');
- for(const width of [320,375,390,430,768,1440]){
+ for(const width of [320,360,375,390,414,430,768,1440]){
   await page.setViewportSize({width,height:800});await page.waitForTimeout(400);
   const nav=page.getByRole('button',{name:'Billing Panel',exact:true});
   assert.equal(await nav.locator('span').filter({hasText:'Billing Panel'}).isVisible(),width>=640);
@@ -51,7 +51,7 @@ for(const role of ['admin','staff']){
    await page.evaluate(()=>delete window.__opened);
    await modal.getByRole('button',{name:'Close coupon sharing'}).click();
    await page.getByRole('button',{name:'Share coupon FESTIVE20 on WhatsApp'}).click();
-   const text=await page.getByRole('dialog').locator('textarea').inputValue();assert.match(text,/FESTIVE20/);assert(!text.includes('WELCOME10'));assert(!text.includes('Expiry date'));
+   const text=await page.getByRole('dialog').locator('textarea').inputValue();assert.match(text,/FESTIVE20/);assert(!text.includes('WELCOME10'));assert(!text.includes('Valid Until'));assert(!text.includes('Minimum purchase'));assert.match(text,/SPECIAL OFFER/);assert.match(text,/20% OFF/);
    await page.keyboard.press('Escape');assert.equal(await page.getByRole('dialog').count(),0);
   }
   console.log(role,width,'navigation, screen smoke checks and coupon checks passed');
