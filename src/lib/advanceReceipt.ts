@@ -130,9 +130,6 @@ export function printAdvanceReceipt(order: AdvanceOrder, payments: AdvancePaymen
   .balance-row { font-size: 14px; font-weight: bold; }
 </style>
 </head><body>
-<div class="c" style="margin-bottom: 6px;">
-  <img src="${BRAND_PRINT_LOGO}" style="width: 50px; height: 50px; object-fit: contain; margin: 0 auto; display: block;" alt="Logo" />
-</div>
 <div class="c" style="font-size:16px;font-weight:900;letter-spacing:2px;">${esc(BRAND_EN.toUpperCase())}</div>
 <div class="c" style="font-size:10px;color:#555;">${esc(BRAND_ADDRESS)}</div>
 <div class="c" style="font-size:10px;color:#555;">${esc(BRAND_PHONE_DISPLAY)}</div>
