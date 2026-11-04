@@ -39,23 +39,20 @@ for(const role of ['admin','staff']){
   if(role==='admin'){
    await page.getByRole('button',{name:'Coupons',exact:true}).click();
    await page.getByRole('button',{name:'Share coupon WELCOME10 on WhatsApp'}).click();
-   const modal=page.getByRole('dialog',{name:'Share Coupon'});await modal.waitFor();
+   const modal=page.getByRole('dialog',{name:/Send coupon/});await modal.waitFor();
    const box=await modal.boundingBox();assert(box.x>=0&&box.x+box.width<=width+1);
    assert.equal(await modal.evaluate(e=>e.scrollWidth<=e.clientWidth),true);
-   await modal.getByRole('textbox',{name:'Customer Name (Optional)'}).fill('Rahul');
-   assert(await modal.getByText(/Dear Rahul,/).isVisible());
-   await modal.getByRole('textbox',{name:'Customer Name (Optional)'}).fill('');
-   assert.equal(await modal.getByText(/Dear Rahul,/).count(),0);
-   assert.match(await modal.locator('textarea').inputValue(),/WELCOME10/);assert.match(await modal.locator('textarea').inputValue(),/399/);
-   await modal.getByRole('button',{name:'Send Coupon'}).click();assert(await modal.getByRole('alert').isVisible());assert.equal(await page.evaluate(()=>window.__opened),undefined);
-   await modal.getByRole('textbox',{name:'Customer Mobile Number'}).fill('9876543210');
-   const custom='Hello & welcome!\nSpecial ₹ offer 🎟';await modal.locator('textarea').fill(custom);
-   await modal.getByRole('button',{name:'Send Coupon'}).click();
-   const opened=await page.evaluate(()=>window.__opened);const url=new URL(opened[0]);assert.equal(url.searchParams.get('phone'),'919876543210');assert.equal(url.searchParams.get('text'),custom);
+   assert(await modal.getByRole('switch').isDisabled());
+   assert(await modal.getByRole('button',{name:'Send link on WhatsApp'}).isDisabled());
+   await modal.getByRole('textbox',{name:'Customer name',exact:true}).fill('Rahul & Co');
+   await modal.getByRole('textbox',{name:/Customer phone/}).fill('9876543210');
+   await modal.getByRole('button',{name:'Send link on WhatsApp'}).click();
+   const opened=await page.evaluate(()=>window.__opened);const url=new URL(opened[0]);assert.equal(url.searchParams.get('phone'),'919876543210');
+   const message=url.searchParams.get('text');assert.match(message,/Hi Rahul & Co!/);assert.match(message,/WELCOME10/);assert.match(message,/399/);assert.match(message,/Download Your Coupon:/);assert.match(message,/https:\/\/error404-pos.vercel.app\/coupon\/WELCOME10/);assert(!message.includes('?p='));
    await page.evaluate(()=>delete window.__opened);
-   await modal.getByRole('button',{name:'Close coupon sharing'}).click();
+   await modal.getByRole('button',{name:'Close',exact:true}).click();
    await page.getByRole('button',{name:'Share coupon FESTIVE20 on WhatsApp'}).click();
-   const text=await page.getByRole('dialog').locator('textarea').inputValue();assert.match(text,/FESTIVE20/);assert(!text.includes('WELCOME10'));assert(!text.includes('Valid Until'));assert(!text.includes('Minimum purchase'));assert.match(text,/SPECIAL OFFER/);assert.match(text,/20% OFF/);
+   assert.match(await page.getByRole('dialog').getByRole('link').getAttribute('href'),/\/coupon\/FESTIVE20$/);
    await page.keyboard.press('Escape');assert.equal(await page.getByRole('dialog').count(),0);
   }
   console.log(role,width,'navigation, screen smoke checks and coupon checks passed');
@@ -64,4 +61,3 @@ for(const role of ['admin','staff']){
 }
 assert.deepEqual(errors,[]);console.log('All checks passed; no runtime errors. API calls mocked; WhatsApp opening intercepted.');
 }finally{await browser.close();await server.close()}
-

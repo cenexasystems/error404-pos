@@ -2,7 +2,9 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": { "api/*.ts": { "includeFiles": "dist/index.html" } },
   "rewrites": [
+    { "source": "/coupon/:code", "destination": "/api/coupon-page?code=:code" },
     {
       "source": "/((?!api/|assets/|favicon|robots|naayan|manifest|sw|workbox|.*\\.[a-zA-Z0-9]+$).*)",
       "destination": "/index.html"

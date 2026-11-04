@@ -647,13 +647,13 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
 
             {/* Right side: Printer / Size info & Settings gear */}
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-gray-300">
-                <span>
-                  Printer <strong className="text-white">{settings.printerType === 'label' ? 'Label Printer' : 'Regular Printer'}</strong>
+              <div className="flex min-w-0 items-center gap-2 text-xs font-semibold text-gray-300">
+                <span className="hidden sm:inline">
+                  Printer <strong className="font-bold text-white">{settings.printerType === 'label' ? 'Label Printer' : 'Regular Printer'}</strong>
                 </span>
-                <span className="text-gray-500">|</span>
-                <span>
-                  Size <strong className="text-primary-hover">{currentSizeConfig.name}</strong>
+                <span className="hidden sm:inline text-gray-500">|</span>
+                <span className="truncate">
+                  <span className="hidden sm:inline">Size </span><strong className="font-bold text-white opacity-100 [text-shadow:none] antialiased">{currentSizeConfig.name}</strong>
                 </span>
               </div>
               <button

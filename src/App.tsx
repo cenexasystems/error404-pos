@@ -42,6 +42,7 @@ const Pos = lazyWithRetry(() => import('./pages/Pos'))
 const DigitalInvoice = lazyWithRetry(() => import('./pages/DigitalInvoice'))
 const Login = lazyWithRetry(() => import('./pages/Login'))
 const AdminLogin = lazyWithRetry(() => import('./pages/AdminLogin'))
+const CouponPage = lazyWithRetry(() => import('./pages/CouponPage'))
 
 function LoadingSpinner() {
   return (
@@ -211,6 +212,14 @@ function AppShell() {
             element={
               <Suspense fallback={<LoadingSpinner />}>
                 <DigitalInvoice />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/coupon/:code"
+            element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <CouponPage />
               </Suspense>
             }
           />

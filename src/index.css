@@ -553,3 +553,86 @@ input[type="month"] {
     text-align: left;
   }
 }
+
+/* ── Shared From / To date filters (Advance Orders, Order History, Analytics, Expenses) ── */
+.date-range-filter {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+.date-range-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  min-width: 0;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.date-range-field:focus-within { border-color: #111111; box-shadow: 0 0 0 1px #111111; }
+.date-range-field > span {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6B7280;
+}
+.date-range-input,
+.date-pill-input {
+  position: relative;
+  min-width: 0;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23111111' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cpath d='M16 2v4M8 2v4M3 10h18'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 16px;
+  padding-right: 1.5rem;
+  font-size: 13px;
+  font-weight: 600 !important;
+  color: #111111;
+  outline: none;
+  cursor: pointer;
+}
+.date-range-input { flex: 1 1 auto; width: 9.5rem; }
+.date-pill-input {
+  min-height: 2.75rem;
+  padding: 0 2.25rem 0 0.875rem;
+  background-color: #fff;
+  background-position: right 0.75rem center;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.75rem;
+}
+.date-pill-input:focus { border-color: #111111; }
+.date-range-input::-webkit-calendar-picker-indicator,
+.date-pill-input::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  opacity: 0;
+  cursor: pointer;
+}
+@media screen and (max-width: 639px) {
+  .date-range-filter {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+  .date-range-field {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0.125rem;
+    padding: 0.5rem 0.75rem;
+    min-height: 3.5rem;
+  }
+  .date-range-input { width: 100%; font-size: 14px; }
+  .date-pill-input { width: 100%; }
+}

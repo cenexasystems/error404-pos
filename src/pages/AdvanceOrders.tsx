@@ -431,11 +431,11 @@ export default function AdvanceOrders({ onOrderCompleted }: AdvanceOrdersProps =
         </div>
         <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => void load()} title="Refresh" aria-label="Refresh" className="flex h-10 w-12 items-center justify-center rounded-2xl border border-gray-200 bg-white text-gray-600 hover:text-[#111111]"><RefreshCw size={18} /></button>
-        <div className="inline-flex flex-wrap items-center gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
-          <label className="flex items-center gap-2"><span className="text-[10px] font-bold uppercase tracking-wider text-[#111111]">From:</span>
-            <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setDateFilter('custom') }} className="bg-transparent text-sm font-black text-[#111111] outline-none" /></label>
-          <label className="flex items-center gap-2"><span className="text-[10px] font-bold uppercase tracking-wider text-[#111111]">To:</span>
-            <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setDateFilter('custom') }} className="bg-transparent text-sm font-black text-[#111111] outline-none" /></label>
+        <div className="date-range-filter">
+          <label className="date-range-field"><span>From:</span>
+            <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setDateFilter('custom') }} className="date-range-input" /></label>
+          <label className="date-range-field"><span>To:</span>
+            <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setDateFilter('custom') }} className="date-range-input" /></label>
         </div>
         </div>
       </div>

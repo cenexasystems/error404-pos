@@ -678,14 +678,14 @@ export default function BillingAnalytics() {
                   type="date"
                   value={analyticsDateFrom}
                   onChange={(e) => setAnalyticsDateFrom(e.target.value)}
-                  className="rounded-xl bg-[#F9FAFB] px-3 py-1.5 text-[12px] font-semibold"
+                  className="date-pill-input"
                 />
                 <span className="text-[12px] font-bold text-[#374151]">→</span>
                 <input
                   type="date"
                   value={analyticsDateTo}
                   onChange={(e) => setAnalyticsDateTo(e.target.value)}
-                  className="rounded-xl bg-[#F9FAFB] px-3 py-1.5 text-[12px] font-semibold"
+                  className="date-pill-input"
                 />
               </>
             )}
@@ -777,13 +777,13 @@ export default function BillingAnalytics() {
                 type="date"
                 value={billSearch.dateFrom}
                 onChange={(e) => setBillSearch((state) => ({ ...state, dateFrom: e.target.value }))}
-                className="rounded-xl bg-[#F9FAFB] px-3 py-2.5 text-[13px] font-semibold outline-none"
+                className="date-pill-input"
               />
               <input
                 type="date"
                 value={billSearch.dateTo}
                 onChange={(e) => setBillSearch((state) => ({ ...state, dateTo: e.target.value }))}
-                className="rounded-xl bg-[#F9FAFB] px-3 py-2.5 text-[13px] font-semibold outline-none"
+                className="date-pill-input"
               />
             </div>
 

@@ -175,11 +175,11 @@ export const ExpensesView: React.FC = () => {
             ))}
           </div>
           {period === 'custom' && (
-            <div className="inline-flex flex-wrap items-center gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-2.5">
-              <label className="flex items-center gap-2"><span className="text-[10px] font-bold uppercase tracking-wider text-[#111111]">From:</span>
-                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="bg-transparent text-[14px] font-black text-[#111111] outline-none" /></label>
-              <label className="flex items-center gap-2"><span className="text-[10px] font-bold uppercase tracking-wider text-[#111111]">To:</span>
-                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="bg-transparent text-[14px] font-black text-[#111111] outline-none" /></label>
+            <div className="date-range-filter">
+              <label className="date-range-field"><span>From:</span>
+                <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="date-range-input" /></label>
+              <label className="date-range-field"><span>To:</span>
+                <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="date-range-input" /></label>
             </div>
           )}
         </div>

@@ -8,6 +8,7 @@ import { changePassword, checkCredentials, createToken, verifyToken, type Role, 
 import { ApiError, runDbRequest, splitTopLevel, type DbRequest, type Filter } from './query.js'
 import { runRpc } from './rpc.js'
 import { getObject, putObject, removeObjects } from './storage.js'
+import { publicCoupon, couponHtml } from './coupons.js'
 
 type Req = IncomingMessage & { body?: unknown; query?: Record<string, string | string[]> }
 
@@ -111,6 +112,14 @@ export async function route(req: Req, res: ServerResponse, routeName?: string) {
   const url = new URL(req.url || '/', 'http://localhost')
   const name = routeName || url.pathname.replace(/^\/api\/?/, '').split('/')[0]
   try {
+    if ((name === 'coupon' || name === 'coupon-page') && req.method === 'GET') {
+      const code = String(req.query?.code || url.searchParams.get('code') || '')
+      if (name === 'coupon') return send(res, 200, { data: await publicCoupon(code) })
+      const html = await couponHtml(code)
+      res.setHeader('Content-Type', 'text/html; charset=utf-8')
+      res.setHeader('Cache-Control', 'no-store')
+      return res.end(html)
+    }
     if (name === 'health') {
       await query('SELECT 1')
       return send(res, 200, { ok: true })
