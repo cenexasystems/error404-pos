@@ -23,6 +23,7 @@ export type { ProductVariant }
 
 // --- Types ---
 export interface Product {
+  createdAt?: string
   id: string | number // Support both legacy numeric IDs and new UUIDs
   name: string
   nameTa?: string
@@ -242,6 +243,7 @@ const mapDbProduct = (input: unknown, categoriesById: Record<string, string> = {
     predefinedOptions: Array.isArray(p.predefined_options) ? p.predefined_options as QuantityOption[] : [],
     isActive: p.is_active !== false,
     sortOrder: toNumber(p.sort_order, 0),
+    createdAt: String(p.created_at || ''),
     unit: readString(p.unit, '100g'),
     rating: toNumber(p.rating, 4.7),
     stock: Math.floor(toNumber(p.stock_quantity ?? p.stock, 0)),

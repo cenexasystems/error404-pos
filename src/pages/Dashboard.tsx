@@ -1078,7 +1078,7 @@ export default function Dashboard() {
         customer_name: editOrderForm.customer_name.trim() || 'Customer',
         phone: editOrderForm.phone.trim(),
         address: editOrderForm.address.trim(),
-        remarks: editOrderForm.remarks.trim(),
+        remarks: editOrderForm.remarks,
         reference_number: editOrderForm.reference_number.trim(),
         status: editOrderForm.status,
         updated_at: new Date().toISOString(),
@@ -1095,6 +1095,7 @@ export default function Dashboard() {
 
       setOrders(prev => prev.map(o => o.id === editingOrder.id ? { ...o, ...updatedFields } : o))
       setSearchResults(prev => prev.map(o => o.id === editingOrder.id ? { ...o, ...updatedFields } : o))
+      setAdvanceOrders(prev => prev.map(a => a.completed_order_id === editingOrder.id ? { ...a, remarks: updatedFields.remarks } : a))
       setEditingOrder(null)
     } catch (err: unknown) {
       alert(`Error updating order: ${err instanceof Error ? err.message : String(err)}`)
@@ -1975,7 +1976,7 @@ export default function Dashboard() {
         {/* Desktop brand header */}
         <div className={`hidden lg:flex items-center relative transition-all duration-300 shrink-0 ${sidebarCollapsed ? 'flex-col items-center pt-5 pb-4 px-2 gap-2 border-b border-white/20' : 'p-6 justify-between gap-3 border-b border-white/20'}`}>
           <Link to="/pos" title="Go to Billing Panel" className={`flex items-center gap-2.5 min-w-0 transition-all duration-300 ${sidebarCollapsed ? 'justify-center' : 'flex-1'}`}>
-            <div className="shrink-0 w-14 h-14 rounded-xl bg-black p-1 shadow-md overflow-hidden">
+            <div className="shrink-0 w-14 h-14 rounded-xl bg-transparent p-1 shadow-md overflow-hidden">
               <img src={BRAND_ICON} alt={BRAND_EN} className="w-full h-full object-contain" />
             </div>
             {!sidebarCollapsed && (
@@ -1998,7 +1999,7 @@ export default function Dashboard() {
         {/* Mobile mini-header */}
         <div className="flex lg:hidden items-center justify-between px-3 py-2 border-b border-white/10 bg-primary shrink-0 gap-2">
           <Link to="/pos" title="Go to Billing Panel" className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-            <div className="h-10 w-10 rounded-xl bg-black p-1 shrink-0 shadow-sm hover:scale-105 transition-transform overflow-hidden">
+            <div className="h-10 w-10 max-sm:h-8 max-sm:w-8 rounded-xl bg-transparent p-1 shrink-0 shadow-sm hover:scale-105 transition-transform overflow-hidden">
               <img src={BRAND_ICON} alt={BRAND_EN} className="w-full h-full object-contain" />
             </div>
             <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">

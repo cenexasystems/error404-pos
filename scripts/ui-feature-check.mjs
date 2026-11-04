@@ -42,6 +42,10 @@ for(const role of ['admin','staff']){
    const modal=page.getByRole('dialog',{name:'Share Coupon'});await modal.waitFor();
    const box=await modal.boundingBox();assert(box.x>=0&&box.x+box.width<=width+1);
    assert.equal(await modal.evaluate(e=>e.scrollWidth<=e.clientWidth),true);
+   await modal.getByRole('textbox',{name:'Customer Name (Optional)'}).fill('Rahul');
+   assert(await modal.getByText(/Dear Rahul,/).isVisible());
+   await modal.getByRole('textbox',{name:'Customer Name (Optional)'}).fill('');
+   assert.equal(await modal.getByText(/Dear Rahul,/).count(),0);
    assert.match(await modal.locator('textarea').inputValue(),/WELCOME10/);assert.match(await modal.locator('textarea').inputValue(),/399/);
    await modal.getByRole('button',{name:'Send Coupon'}).click();assert(await modal.getByRole('alert').isVisible());assert.equal(await page.evaluate(()=>window.__opened),undefined);
    await modal.getByRole('textbox',{name:'Customer Mobile Number'}).fill('9876543210');

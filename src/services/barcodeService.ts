@@ -83,6 +83,7 @@ export const barcodeService = {
     // Normalize to uppercase so hardware scanners emitting lowercase still match
     const cleanValue = (barcodeValue ?? '').trim().toUpperCase()
     if (!cleanValue) return null
+    const exactPattern = cleanValue.replace(/[\\%_]/g, '\\$&')
 
     // 1. Direct registry lookup (case-insensitive via ilike)
     const { data, error } = await db
@@ -92,12 +93,12 @@ export const barcodeService = {
         product:products (id, name, name_ta, price, offer_price, image_url, category),
         variant:product_variants (id, variant_name, price, stock, sku)
       `)
-      .ilike('barcode_value', cleanValue)
+      .ilike('barcode_value', exactPattern)
       .eq('is_active', true)
       .maybeSingle()
 
     if (error) {
-      console.warn('[barcodeService.lookupBarcode] Query error:', error)
+      throw new Error(`Barcode lookup failed: ${error.message}`)
     }
 
     if (data) {
@@ -112,11 +113,13 @@ export const barcodeService = {
     }
 
     // 2. Fallback: Check product_variants.barcode (case-insensitive)
-    const { data: varData } = await db
+    const { data: varData, error: variantError } = await db
       .from('product_variants')
       .select('id, product_id, variant_name, price, stock, sku, barcode, product:products (id, name, name_ta, price, offer_price, image_url, category)')
-      .ilike('barcode', cleanValue)
+      .ilike('barcode', exactPattern)
       .maybeSingle()
+
+    if (variantError) throw new Error(`Variant barcode is ambiguous or unavailable: ${variantError.message}`)
 
     if (varData) {
       const p = Array.isArray(varData.product) ? varData.product[0] : varData.product
@@ -145,7 +148,7 @@ export const barcodeService = {
     const { data: prodData } = await db
       .from('products')
       .select('id, name, name_ta, price, offer_price, image_url, category, barcode, stock_quantity')
-      .ilike('barcode', cleanValue)
+      .ilike('barcode', exactPattern)
       .maybeSingle()
 
     if (prodData) {

@@ -96,7 +96,7 @@ export const inventoryService = {
     const { data: products, error: prodErr } = await db
       .from('products')
       .select('id, name, name_ta, price, offer_price, purchase_price, stock_quantity, low_stock_alert, unit, unit_type, category, category_id, image_url, barcode, sku, is_active, updated_at')
-      .order('name', { ascending: true })
+      .order('created_at', { ascending: false }).order('id', { ascending: false })
 
     if (prodErr) {
       console.error('[inventoryService.fetchInventoryItems] Products error:', prodErr)
@@ -107,7 +107,7 @@ export const inventoryService = {
     const { data: variants, error: varErr } = await db
       .from('product_variants')
       .select('id, product_id, variant_name, price, purchase_price, stock, barcode, sku, is_active, updated_at')
-      .order('sort_order', { ascending: true })
+      .order('sort_order', { ascending: true }).order('id', { ascending: true })
 
     if (varErr) {
       console.error('[inventoryService.fetchInventoryItems] Variants error:', varErr)

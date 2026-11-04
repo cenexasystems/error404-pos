@@ -14,7 +14,7 @@ export interface SchemaCache {
 }
 
 /** Tables the API never exposes through the generic query endpoint. */
-export const INTERNAL_TABLES = new Set(['schema_migrations', 'storage_files', 'table_versions'])
+export const INTERNAL_TABLES = new Set(['schema_migrations', 'storage_files', 'table_versions', 'barcode_repair_audit'])
 /** Functions callable through /api/rpc (all others are internal: triggers, helpers). */
 export const RPC_ALLOWLIST = new Set([
   'add_advance_order_event',

@@ -63,7 +63,7 @@ export const createOrderWithStock = async (input: CreateOrderInput): Promise<Cre
   const gstEnabled      = Boolean(input.gstEnabled)
   const paymentMethod   = input.paymentMethod || 'cash'
   const splitDetails    = input.splitDetails || {}
-  const remarks         = (input.remarks || '').trim()
+  const remarks         = (input.remarks || '')
   const referenceNumber = (input.referenceNumber || '').trim()
   const billingDate     = input.billingDate || null
 
@@ -179,6 +179,11 @@ export const createOrderWithStock = async (input: CreateOrderInput): Promise<Cre
   const invoiceNo = String(rowObj.invoice_no ?? rowObj.invoiceNo ?? '')
   if (!orderId || !invoiceNo) {
     throw new Error('Order RPC returned an invalid payload')
+  }
+
+  if (inventoryRpcResult.error?.code === 'PGRST202') {
+    const { error: metadataError } = await db.from('orders').update({ remarks, reference_number: referenceNumber }).eq('id', orderId)
+    if (metadataError) throw new Error(`Order ${invoiceNo} was saved, but its notes could not be saved. Edit this existing order; do not bill it again. ${metadataError.message}`)
   }
 
   // NOTE: coupon usage_count is already incremented atomically inside the

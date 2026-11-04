@@ -52,7 +52,8 @@ export function printSheetInvoice(props: InvoiceProps, size: SheetSize) {
   html, body { margin: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   ${size === 'A5' ? 'body { zoom: 0.72; }' : ''}
   #invoice-print-root { max-width: none !important; padding: 18px 22px !important; }
-  tr { page-break-inside: avoid; }
+  tr, .invoice-footer, .invoice-summary { break-inside: avoid; page-break-inside: avoid; }
+  .invoice-footer { margin-top: 20px !important; padding-top: 12px !important; }
 </style></head><body>${markup}</body></html>`
   printHtmlDocument(html)
 }

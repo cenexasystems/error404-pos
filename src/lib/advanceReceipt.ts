@@ -60,11 +60,18 @@ export function advanceReceiptPdf(order: AdvanceOrder, payments: AdvancePayment[
     ['Category', order.category || '-'], ['Expected delivery', new Date(`${order.expected_delivery_date}T00:00:00`).toLocaleDateString('en-IN')],
   ]
   let y = 66
-  rows.forEach(([label, value]) => { doc.setFont('helvetica', 'bold'); doc.setTextColor('#6B7280'); doc.text(label.toUpperCase(), 16, y); doc.setFont('helvetica', 'normal'); doc.setTextColor('#1F1F1F'); doc.text(String(value), 64, y, { maxWidth: 126 }); y += 10 })
+  rows.forEach(([label, value]) => {
+    const wrapped = doc.splitTextToSize(String(value), 126) as string[]
+    const height = Math.max(8, wrapped.length * 4 + 3)
+    if (y + height > 260) { doc.addPage(); y = 20 }
+    doc.setFont('helvetica', 'bold'); doc.setTextColor('#6B7280'); doc.text(label.toUpperCase(), 16, y)
+    doc.setFont('helvetica', 'normal'); doc.setTextColor('#1F1F1F'); doc.text(wrapped, 64, y); y += height
+  })
   y += 4
   const rowsBreakdown = advanceBreakdownRows(order)
   const lines = paymentLines(order, payments)
   const boxHeight = 8 + rowsBreakdown.length * 8 + 5 + lines.reduce((sum, line) => sum + (line.sub ? 6 : 8), 0) + 4
+  if (y + boxHeight + 20 > 265) { doc.addPage(); y = 20 }
   doc.setFillColor('#FAFAFA'); doc.roundedRect(16, y, 178, boxHeight, 3, 3, 'F')
   let rowY = y + 9
   doc.setFontSize(9)

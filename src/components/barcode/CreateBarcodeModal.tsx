@@ -143,7 +143,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
           const matched = targetVariantId ? vars.find(v => v.id === targetVariantId) : vars[0]
           const chosen = matched || vars[0]
           setSelectedVariant(chosen)
-          if (chosen.barcode) setItemCode(chosen.barcode)
+          setItemCode(chosen.barcode || '')
           setLine2(`Size: ${chosen.variantName}`)
           if (chosen.price) {
             setLine3(settings.showDiscount ? 'Discount: 0%' : `Price: ₹${chosen.price}`)
@@ -226,7 +226,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
     const v = variants.find((item) => item.id === varId)
     if (!v) return
     setSelectedVariant(v)
-    if (v.barcode) setItemCode(v.barcode)
+    setItemCode(v.barcode || '')
     setLine2(`Size: ${v.variantName}`)
     if (v.price) {
       setLine3(settings.showDiscount ? 'Discount: 0%' : `Price: ₹${v.price}`)
@@ -253,8 +253,8 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
       return
     }
 
-    if (!itemCode.trim()) {
-      setStatusMessage({ type: 'error', text: 'Item Code / Barcode is required' })
+    if (selectedProduct.has_variants && !selectedVariant) {
+      setStatusMessage({ type: 'error', text: 'Select a variant before generating its barcode.' })
       return
     }
 
@@ -321,7 +321,8 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
     .reduce((sum, it) => sum + (it.noOfLabels || 0), 0)
 
   const handleGenerateAndCommitStock = async () => {
-    const selectedItems = queue.filter((it) => it.selected)
+    const selectedItems = queue.filter((it) => it.selected && !it.committed)
+    if (selectedItems.length === 0 && queue.some(it => it.selected && it.committed)) { setShowSheetPreviewModal(true); return }
     if (selectedItems.length === 0) {
       setStatusMessage({ type: 'error', text: 'Please add and select at least one item to generate barcodes' })
       return
@@ -332,7 +333,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
 
     try {
       for (const item of selectedItems) {
-        await barcodeService.receiveStockWithBarcode({
+        const saved = await barcodeService.receiveStockWithBarcode({
           product_id: item.productId,
           variant_id: item.variantId || null,
           quantity_received: updateStock ? item.noOfLabels : 0,
@@ -341,6 +342,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
           note: updateStock ? `Received via Barcode Generator (${item.noOfLabels} labels)` : 'Barcode assigned',
           created_by_name: 'Admin',
         })
+        setQueue(current => current.map(row => row.id === item.id ? { ...row, barcodeValue: saved.barcode_value, committed: true } : row))
       }
 
       await fetchProducts(true)
@@ -367,6 +369,11 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
 
   const printQueueDirectly = () => {
     const selectedItems = queue.filter((it) => it.selected)
+    if (selectedItems.some(it => !it.committed)) {
+      setShowSheetPreviewModal(false)
+      setStatusMessage({ type: 'error', text: 'Generate and save the selected barcodes before printing.' })
+      return
+    }
     if (selectedItems.length === 0) return
 
     try {
@@ -818,7 +825,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
                           name="itemCode"
                           type="text"
                           required
-                          placeholder="Enter Item Code"
+                          placeholder="Auto-generated when saved"
                           value={itemCode}
                           onChange={(e) => setItemCode(e.target.value)}
                           className="w-full h-10 px-3 rounded-xl border border-gray-300 bg-white text-xs font-mono font-bold text-gray-900 outline-none focus:border-[#111111]"
@@ -846,7 +853,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
                           onClick={() => {
                             if (!selectedProduct) return
                             const unassignedVariants = variants.filter(
-                              (v) => !v.barcode || !v.barcode.trim()
+                              (v) => (!v.barcode || !v.barcode.trim()) && !queue.some(row => row.variantId === v.id)
                             )
 
                             if (unassignedVariants.length === 0) {
@@ -863,7 +870,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
                               productName: selectedProduct.name,
                               variantId: v.id,
                               variantName: v.variantName,
-                              barcodeValue: `UL${Math.floor(1000000 + Math.random() * 9000000)}`,
+                              barcodeValue: '',
                               price: v.price || selectedProduct.price,
                               costPrice: selectedProduct.cost_price || 0,
                               noOfLabels: parseInt(noOfLabels, 10) || 1,

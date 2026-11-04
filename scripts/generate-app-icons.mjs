@@ -5,13 +5,13 @@ import fs from 'fs';
 /**
  * Safe Utility Script: generate-app-icons.mjs
  *
- * Generates every raster asset from the single master logo file public/naayan-logo.png:
+ * Generates every raster asset from the single master logo file public/error404-logo.png:
  *  - PWA icons (standard + Android maskable with safe-zone padding)
  *  - iOS Apple Touch icon
  *  - Favicons
  *  - src/lib/logoBase64.ts (PNG data URI used by the PDF / thermal / print templates)
  *
- * To use the real logo later: replace public/naayan-logo.png (or the .svg/.jpg/.jpeg/.webp
+ * To use the real logo later: replace public/error404-logo.png (or the .svg/.jpg/.jpeg/.webp
  * variant of the same name) and run `npm run generate:icons`. No other code changes are needed.
  *
  * Safe to commit to GitHub (no secrets/credentials).
@@ -19,9 +19,9 @@ import fs from 'fs';
 
 const ROOT_DIR = process.cwd();
 const PUBLIC_DIR = path.join(ROOT_DIR, 'public');
-const CANDIDATES = ['png', 'svg', 'jpg', 'jpeg', 'webp'].map((ext) => path.join(PUBLIC_DIR, `naayan-logo.${ext}`));
+const CANDIDATES = ['png', 'svg', 'jpg', 'jpeg', 'webp'].map((ext) => path.join(PUBLIC_DIR, `error404-logo.${ext}`));
 const SRC_ICON = CANDIDATES.find((p) => fs.existsSync(p));
-const BG = { r: 184, g: 179, b: 172, alpha: 1 }; // matches the logo's own stone-grey background
+const BG = { r: 0, g: 0, b: 0, alpha: 0 }; // Preserve the transparent logo background.
 
 async function main() {
   if (!SRC_ICON) {
@@ -45,19 +45,19 @@ async function main() {
   }
 
   // 1. Android Adaptive / PWA Maskable Icons (logo inside the ~70% safe zone on a solid background)
-  await generateSquareIcon(512, 360, path.join(PUBLIC_DIR, 'naayan-icon-maskable-512.png'), BG);
-  await generateSquareIcon(192, 135, path.join(PUBLIC_DIR, 'naayan-icon-maskable-192.png'), BG);
+  await generateSquareIcon(512, 360, path.join(PUBLIC_DIR, 'error404-icon-maskable-512.png'), BG);
+  await generateSquareIcon(192, 135, path.join(PUBLIC_DIR, 'error404-icon-maskable-192.png'), BG);
 
   // 2. Standard "any" icons
-  await generateSquareIcon(512, 512, path.join(PUBLIC_DIR, 'naayan-icon-512.png'));
-  await generateSquareIcon(192, 192, path.join(PUBLIC_DIR, 'naayan-icon-192.png'));
-  await generateSquareIcon(512, 512, path.join(PUBLIC_DIR, 'naayan-icon.png'));
+  await generateSquareIcon(512, 512, path.join(PUBLIC_DIR, 'error404-icon-512.png'));
+  await generateSquareIcon(192, 192, path.join(PUBLIC_DIR, 'error404-icon-192.png'));
+  await generateSquareIcon(512, 512, path.join(PUBLIC_DIR, 'error404-icon.png'));
 
-  // 3. Apple Touch Icon for iOS (opaque)
+  // 3. Apple Touch source icon (preserve artwork transparency)
   await generateSquareIcon(180, 180, path.join(PUBLIC_DIR, 'apple-touch-icon.png'), BG);
 
   // 4. Favicons
-  await generateSquareIcon(64, 64, path.join(PUBLIC_DIR, 'naayan-favicon.png'));
+  await generateSquareIcon(64, 64, path.join(PUBLIC_DIR, 'error404-favicon.png'));
   await generateSquareIcon(64, 64, path.join(PUBLIC_DIR, 'favicon.png'));
 
   // 5. PNG data URI used by jsPDF / thermal / print templates
@@ -71,7 +71,7 @@ async function main() {
   );
   console.log('-> Generated src/lib/logoBase64.ts');
 
-  console.log('\nAll NAAYAN PWA icons and print logo generated successfully.');
+  console.log('\nAll ERROR 404 PWA icons and print logo generated successfully.');
 }
 
 main().catch((err) => {

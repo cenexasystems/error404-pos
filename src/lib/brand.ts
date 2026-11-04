@@ -57,7 +57,7 @@ const CACHE_KEY = 'error404_brand_settings_v1'
  * The image must exist inside the public folder:
  * public/error404-logo.png
  */
-export const DEFAULT_LOGO = '/error404-logo.png'
+export const DEFAULT_LOGO = '/error404-logo.png?v=8-transparent'
 
 /**
  * Update this after deploying your own project to Vercel.

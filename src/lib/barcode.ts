@@ -142,6 +142,7 @@ export function getAllLabelSizes(): LabelSizeConfig[] {
 }
 
 export interface BarcodeQueueItem {
+  committed?: boolean
   id: string
   productId: number
   productName: string

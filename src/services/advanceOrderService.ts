@@ -239,7 +239,7 @@ export async function createAdvanceOrder(input: {
         ...(input.paymentMethod === 'split' ? { p_split_details: splitDetails } : {}),
       })
       if (error) {
-        console.error('[createAdvanceOrder] Supabase error:', error.message)
+        throw new Error(error.message)
       } else if (data) {
         createdOrder = normalizeOrder(rpcRow(data))
         // Patch columns that are not RPC params (reference number + price breakdown)
@@ -252,9 +252,11 @@ export async function createAdvanceOrder(input: {
           createdOrder = { ...createdOrder, ...patch } as AdvanceOrder
         }
       }
+      if (!createdOrder) throw new Error('The database did not confirm the advance order. Please try again.')
     } catch (err) {
       console.error('[createAdvanceOrder] Exception:', err)
       if (createdOrder) throw new Error(`Advance order was created, but its reference number / price breakdown could not be saved (run the latest Supabase migration): ${err instanceof Error ? err.message : String(err)}`)
+      throw err
     }
   }
 
@@ -281,7 +283,7 @@ export async function createAdvanceOrder(input: {
       remaining_balance: Number(input.totalAmount) - Number(input.depositAmount),
       expected_delivery_date: input.expectedDeliveryDate,
       status: 'pending_deposit',
-      remarks: input.remarks.trim(),
+      remarks: input.remarks,
       reference_number: (input.referenceNumber || '').trim(),
       created_by_name: input.createdByName,
       created_at: now.toISOString(),
@@ -444,7 +446,7 @@ export async function completeAdvanceOrder(
       invoice_number: result.invoice_no,
       final_payment_method: paymentMethod,
       split_details: result.split_details,
-      remarks: remarks || order.remarks,
+      remarks: order.remarks,
       updated_at: now,
     }
     saveLocalOrders(localOrders.map(o => o.id === orderId ? updatedOrder : o))

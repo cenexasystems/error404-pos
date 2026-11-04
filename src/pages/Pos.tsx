@@ -250,7 +250,7 @@ export default function Pos(props: PosProps = {}) {
   const [addToCatalogOpen, setAddToCatalogOpen] = useState(false)
   const [depositOpen, setDepositOpen] = useState(false)
   const [depositCreated, setDepositCreated] = useState<AdvanceOrder | null>(null)
-  const [depositForm, setDepositForm] = useState({ amount: '', expectedDeliveryDate: '', paymentMethod: 'cash' as AdvancePaymentMethod, address: '', remarks: '' })
+  const [depositForm, setDepositForm] = useState({ amount: '', expectedDeliveryDate: '', paymentMethod: 'cash' as AdvancePaymentMethod, address: '' })
   const [dbCategories, setDbCategories] = useState<string[]>([])
   const [priceEditModal, setPriceEditModal] = useState<{
     isOpen: boolean
@@ -775,7 +775,7 @@ export default function Pos(props: PosProps = {}) {
     if (total <= 0) { setError('The order total must be greater than zero.'); return }
     const enteredAmount = Number(cashReceived) || 0
     const suggestedDeposit = enteredAmount > 0 && enteredAmount < total ? String(enteredAmount) : ''
-    setDepositForm({ amount: suggestedDeposit, expectedDeliveryDate: '', paymentMethod: 'cash', address: customer.address || '', remarks })
+    setDepositForm({ amount: suggestedDeposit, expectedDeliveryDate: '', paymentMethod: 'cash', address: customer.address || '' })
     setDepositSplit(emptySplitInput())
     setError('')
     setDepositOpen(true)
@@ -810,7 +810,7 @@ export default function Pos(props: PosProps = {}) {
         category: Array.from(new Set(items.map(item => item.category).filter(Boolean))).join(', '),
         description: items.map(item => `${item.qty}× ${item.name}${item.note ? ` — ${item.note}` : ''}`).join('\n'),
         totalAmount: total, depositAmount, expectedDeliveryDate: depositForm.expectedDeliveryDate,
-        referenceNumber: referenceNumber.trim(), remarks: depositForm.remarks, paymentMethod: depositForm.paymentMethod, createdByName: role || 'Staff',
+        referenceNumber: referenceNumber.trim(), remarks, paymentMethod: depositForm.paymentMethod, createdByName: role || 'Staff',
         products: productsSnapshot,
         // total = subtotal - discount + GST + delivery; keep the parts so receipts / invoice can show them
         breakdown: {
@@ -900,7 +900,7 @@ export default function Pos(props: PosProps = {}) {
         gstEnabled: billGstEnabled,
         paymentMethod: paymentMode,
         splitDetails: splitDetailsForBill,
-        remarks: remarks.trim(),
+        remarks,
         referenceNumber: referenceNumber.trim(),
         billingDate: effectiveBillingDate,
       })
@@ -921,7 +921,7 @@ export default function Pos(props: PosProps = {}) {
         coupon_percentage: appliedCoupon?.percentage || 0,
         manual_discount_amount: manualDiscountAmount,
         delivery_charge: Number(shipping || 0),
-        remarks: remarks.trim(),
+        remarks,
         reference_number: referenceNumber.trim(),
         billing_date: effectiveBillingDate,
       }).eq('id', created.orderId)
@@ -1233,7 +1233,7 @@ export default function Pos(props: PosProps = {}) {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Offline (POS) / Online order */}
-          <div className="inline-flex items-center rounded-full border border-gray-200 bg-white p-1.5 shadow-[0_2px_10px_rgba(0,0,0,0.05)]" role="tablist" aria-label="Order source">
+          <div className="inline-flex max-w-full items-center rounded-full border border-gray-200 bg-white p-1.5 max-sm:p-1 max-sm:[&>button]:h-9 shadow-[0_2px_10px_rgba(0,0,0,0.05)]" role="tablist" aria-label="Order source">
             <button
               type="button"
               role="tab"
@@ -1817,7 +1817,6 @@ export default function Pos(props: PosProps = {}) {
               <label htmlFor="pos-deposit-delivery-date" className="block"><span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-[#6B7280]">Expected delivery *</span><input id="pos-deposit-delivery-date" name="deliveryDate" required type="date" value={depositForm.expectedDeliveryDate} onChange={e => setDepositForm({...depositForm, expectedDeliveryDate:e.target.value})} className="w-full rounded-xl border px-3 py-2.5 text-sm font-bold outline-none focus:border-gray-600"/></label>
               <label htmlFor="pos-deposit-payment-method" className="block"><span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-[#6B7280]">Payment method *</span><select id="pos-deposit-payment-method" name="paymentMethod" value={depositForm.paymentMethod} onChange={e => setDepositForm({...depositForm,paymentMethod:e.target.value as AdvancePaymentMethod})} className="w-full rounded-xl border px-3 py-2.5 text-sm font-bold outline-none focus:border-gray-600"><option value="cash">Cash</option><option value="upi">QR</option><option value="card">Card</option><option value="split">Split (Cash / QR / Card)</option></select></label>
               {depositForm.paymentMethod === 'split' && (<div className="sm:col-span-2"><SplitPaymentInputs idPrefix="pos-deposit-split" total={Number(depositForm.amount) || 0} value={depositSplit} onChange={setDepositSplit} /></div>)}
-              <label htmlFor="pos-deposit-remarks" className="block sm:col-span-2"><span className="mb-1 block text-[10px] font-black uppercase tracking-wide text-[#6B7280]">Remarks (Optional)</span><textarea id="pos-deposit-remarks" name="depositRemarks" value={depositForm.remarks} onChange={e => setDepositForm({...depositForm,remarks:e.target.value})} className="w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:border-gray-600" rows={2}/></label>
             </div>
             {error && <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs font-bold text-red-600">{error}</div>}
             <div className="mt-5 flex gap-3"><button type="button" onClick={() => { setDepositOpen(false); setError('') }} className="flex-1 rounded-xl border py-3 text-sm font-black">Cancel</button><button disabled={saving} className="flex-[1.5] rounded-xl bg-gray-700 py-3 text-sm font-black text-white disabled:opacity-50">{saving ? 'Saving…' : 'Confirm Deposit Order'}</button></div>

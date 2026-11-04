@@ -1,3 +1,4 @@
+import { canvasToPdf, pdfBlocks, type PdfBlock } from './pdfPages'
 import { formatPhoneDisplay } from './phone'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
@@ -46,6 +47,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   const ink = '#1F1F1F'
   const muted = '#6B7280'
   let y = 16
+  const ensureSpace = (height: number) => { if (y + height > 266) { doc.addPage(); y = 20 } }
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
@@ -120,9 +122,9 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
 
   data.items.forEach((raw, index) => {
     const item = normalizeStructuredOrderItem(raw)
-    if (y > 260) { doc.addPage(); y = 20 }
     const name = item.name || 'Item'
-    const nameLines = doc.splitTextToSize(name, 105) as string[]
+    const nameLines = doc.splitTextToSize(name, 95) as string[]
+    ensureSpace(Math.max(10, nameLines.length * 4 + 4))
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(8)
     doc.setTextColor(ink)
@@ -151,6 +153,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
     rows.push(['SGST', money(data.sgstAmount || 0), ink])
   } else if ((data.gstAmount || 0) > 0) rows.push(['GST', money(data.gstAmount || 0), ink])
   rows.push(['Delivery', (data.shipping || 0) > 0 ? money(data.shipping) : 'FREE', ink])
+  ensureSpace(rows.length * 7 + 24 + (data.paymentRows || []).reduce((sum,row) => sum + (row.sub ? 5 : 6.5), 0) + 20)
   doc.setFontSize(9)
   rows.forEach(([label, value, color]) => { doc.setFont('helvetica', 'normal'); doc.setTextColor(color); doc.text(label, 143, y, { align: 'right' }); doc.text(value, right - 4, y, { align: 'right' }); y += 7 })
   doc.setDrawColor(primaryColor)
@@ -202,8 +205,8 @@ export async function invoicePdfFileFromElement(
 ): Promise<File> {
   const formattedNo = formatInvoiceNo(invoiceNo)
   const invoiceRoot = (element.querySelector('#invoice-print-root') as HTMLElement) || element
-  const canonicalWidth = 680
-  const targetMinHeight = Math.round(canonicalWidth * (297 / 210)) // 962px (exact A4 ratio)
+  const canonicalWidth = 760
+  let blocks: PdfBlock[] = []
 
   try {
     const canvas = await html2canvas(invoiceRoot, {
@@ -220,30 +223,15 @@ export async function invoicePdfFileFromElement(
         clonedInvoice.style.width = `${canonicalWidth}px`
         clonedInvoice.style.minWidth = `${canonicalWidth}px`
         clonedInvoice.style.maxWidth = `${canonicalWidth}px`
-        clonedInvoice.style.minHeight = `${targetMinHeight}px`
+        clonedInvoice.style.minHeight = '0'
+        clonedInvoice.style.padding = '24px'
         clonedInvoice.style.boxSizing = 'border-box'
         clonedInvoice.style.margin = '0 auto'
+        blocks = pdfBlocks(clonedInvoice)
       },
     })
 
-    const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-    const pageWidth = 210
-    const pageHeight = 297
-    const imageHeight = (canvas.height * pageWidth) / canvas.width
-    const image = canvas.toDataURL('image/png')
-
-    if (imageHeight <= pageHeight + 5) {
-      doc.addImage(image, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST')
-    } else {
-      let offset = 0
-      let page = 0
-      while (offset < imageHeight) {
-        if (page > 0) doc.addPage()
-        doc.addImage(image, 'PNG', 0, -offset, pageWidth, imageHeight, undefined, 'FAST')
-        offset += pageHeight
-        page += 1
-      }
-    }
+    const doc = canvasToPdf(canvas, blocks, canonicalWidth)
 
     return new File([doc.output('blob')], `Invoice-${formattedNo}.pdf`, { type: 'application/pdf' })
   } catch (error) {

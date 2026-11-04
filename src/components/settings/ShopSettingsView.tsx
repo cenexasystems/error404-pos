@@ -339,7 +339,7 @@ export const ShopSettingsView: React.FC = () => {
             <ImageIcon size={16} /> Shop logo
           </p>
           <div className="flex flex-wrap items-center gap-5">
-            <div className="h-24 w-24 shrink-0 bg-black p-1 overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+            <div className="h-24 w-24 shrink-0 bg-transparent p-1 overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
               <img src={form.logo || DEFAULT_LOGO} alt="Shop logo" className="h-full w-full object-contain" />
             </div>
             <div className="min-w-0 flex-1">
@@ -383,7 +383,7 @@ export const ShopSettingsView: React.FC = () => {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center gap-2 h-10 px-6 rounded-xl bg-[#111111] text-white text-[10px] font-bold uppercase tracking-wider hover:bg-black disabled:opacity-60"
+            className="inline-flex items-center gap-2 h-10 px-6 rounded-xl bg-primary text-primary-ink text-[10px] font-bold uppercase tracking-wider hover:bg-primary-hover disabled:opacity-60"
           >
             <Save size={17} /> {saving ? 'Saving…' : 'Save shop details'}
           </button>

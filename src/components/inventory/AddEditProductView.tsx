@@ -13,6 +13,7 @@ import {
 import { useProductStore, type Product } from '../../store/store'
 import { fetchVariantsByProduct } from '../../services/variantService'
 import { inventoryService, type CategoryRecord } from '../../services/inventoryService'
+import { newestProductsFirst } from '../../lib/productOrder'
 import { normalizeBarcode } from '../../lib/barcode'
 import { db } from '../../lib/db'
 import { confirmDelete } from '../../lib/confirmDelete'
@@ -711,7 +712,7 @@ export const AddEditProductView: React.FC<{
     }
   }, [activeProducts, selectedProductId])
 
-  const filteredProducts = activeProducts.filter((p) =>
+  const filteredProducts = [...activeProducts].sort(newestProductsFirst).filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     (p.category && p.category.toLowerCase().includes(search.toLowerCase())) ||
     (p.barcode && p.barcode.toLowerCase().includes(search.toLowerCase()))

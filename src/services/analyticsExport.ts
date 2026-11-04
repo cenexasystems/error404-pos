@@ -1,4 +1,4 @@
-import { jsPDF } from 'jspdf'
+import { canvasToPdf, pdfBlocks } from '../lib/pdfPages'
 import html2canvas from 'html2canvas'
 import { BRAND_EN, BRAND_ADDRESS, BRAND_PHONE_DISPLAY } from '../lib/brand'
 import { BRAND_PRINT_LOGO } from '../lib/brand'
@@ -240,7 +240,7 @@ export async function exportAnalyticsToPDF({
       <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #A1A1AA; padding-bottom: 14px; margin-bottom: 18px;">
         <div>
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 44px; height: 44px; border-radius: 10px; background: #111111; border: 1.5px solid #A1A1AA; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px; box-sizing: border-box; flex-shrink: 0;">
+            <div style="width: 44px; height: 44px; border-radius: 10px; background: transparent; border: 1.5px solid #A1A1AA; display: flex; align-items: center; justify-content: center; overflow: hidden; padding: 2px; box-sizing: border-box; flex-shrink: 0;">
               <img src="${BRAND_PRINT_LOGO}" style="width: 100%; height: 100%; object-fit: contain; display: block;" alt="Logo" />
             </div>
             <div>
@@ -501,17 +501,7 @@ export async function exportAnalyticsToPDF({
       backgroundColor: '#FFFFFF',
     })
 
-    const imgData = canvas.toDataURL('image/jpeg', 0.95)
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    })
-
-    const pdfWidth = 210
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width
-
-    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, Math.min(297, pdfHeight))
+    const pdf = canvasToPdf(canvas, pdfBlocks(container), container.getBoundingClientRect().width)
     pdf.save(`${BRAND_EN.replace(/\s+/g, '')}_Analytics_Report_${activeTab}_${datePreset || 'all'}_${new Date().toISOString().slice(0, 10)}.pdf`)
   } catch (error) {
     console.error('Failed to generate Analytics PDF:', error)

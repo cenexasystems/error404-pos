@@ -52,8 +52,7 @@ export default function AdminLogin() {
           {/* Brand */}
           <div className="flex flex-col items-center text-center">
             <div className="relative mb-4">
-              <div className="absolute inset-0 -m-2 rounded-[24px] bg-primary/25 blur-lg" aria-hidden />
-              <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-black p-2 shadow-md">
+              <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-transparent p-2 shadow-md">
                 <img
                   src={BRAND_LOGO}
                   alt={BRAND_EN}
