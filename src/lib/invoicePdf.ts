@@ -45,7 +45,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   const right = 194
   const primaryColor = '#111111' // Deep Royal Navy
   const ink = '#1F1F1F'
-  const muted = '#6B7280'
+  const muted = '#374151'
   let y = 16
   const ensureSpace = (height: number) => { if (y + height > 266) { doc.addPage(); y = 20 } }
 
@@ -146,8 +146,8 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
 
   y = Math.max(y + 6, 150)
   const rows: Array<[string, string, string]> = [['Subtotal', money(data.subtotal), ink]]
-  if ((data.discountAmount || 0) > 0) rows.push([`Coupon${data.couponCode ? ` (${data.couponCode})` : ''}`, `-${money(data.discountAmount || 0)}`, '#A1A1AA'])
-  if ((data.manualDiscountAmount || 0) > 0) rows.push(['Discount', `-${money(data.manualDiscountAmount || 0)}`, '#A1A1AA'])
+  if ((data.discountAmount || 0) > 0) rows.push([`Coupon${data.couponCode ? ` (${data.couponCode})` : ''}`, `-${money(data.discountAmount || 0)}`, '#4B5563'])
+  if ((data.manualDiscountAmount || 0) > 0) rows.push(['Discount', `-${money(data.manualDiscountAmount || 0)}`, '#4B5563'])
   if ((data.cgstAmount || 0) > 0 || (data.sgstAmount || 0) > 0) {
     rows.push(['CGST', money(data.cgstAmount || 0), ink])
     rows.push(['SGST', money(data.sgstAmount || 0), ink])
@@ -205,9 +205,12 @@ export function invoicePdfFile(data: InvoicePdfData): File {
  */
 function invoiceCaptureScale(root: HTMLElement, width: number): number {
   const target = 4
-  const maxPixels = 14_000_000
-  // Height at the capture width; measured at the on-screen width with headroom for reflow.
-  const estimatedHeight = Math.max(root.scrollHeight, root.offsetHeight, 1100) * 1.3
+  const maxPixels = 15_500_000
+  // Height at the capture width. Already rendered at that width (downloads) → small margin;
+  // measured on a narrower/wider screen → extra headroom for reflow.
+  const renderedWidth = root.getBoundingClientRect().width
+  const headroom = Math.abs(renderedWidth - width) <= 40 ? 1.05 : 1.3
+  const estimatedHeight = Math.max(root.scrollHeight, root.offsetHeight, 900) * headroom
   const fit = Math.sqrt(maxPixels / (width * estimatedHeight))
   return Math.max(2, Math.min(target, Math.floor(fit * 4) / 4))
 }
