@@ -163,7 +163,7 @@ export const AdjustStockModal: React.FC<AdjustStockModalProps> = ({
               <h2 className="text-sm sm:text-base font-black tracking-wide text-white leading-tight">
                 Adjust Inventory Stock ({BRAND_EN})
               </h2>
-              <p className="text-[11px] text-primary-hover font-semibold leading-tight">
+              <p className="text-[11px] text-white/90 font-semibold leading-tight">
                 Restock, remove stock, or reconcile physical count
               </p>
             </div>

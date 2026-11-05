@@ -102,7 +102,7 @@ export const StockHistoryDrawer: React.FC<StockHistoryDrawerProps> = ({
               <h2 className="text-base font-black tracking-wide text-white">
                 Stock Audit Ledger
               </h2>
-              <p className="text-xs text-primary-hover font-semibold">
+              <p className="text-xs text-white/90 font-semibold">
                 {BRAND_EN} Immutable History
               </p>
             </div>

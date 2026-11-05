@@ -96,7 +96,7 @@ export const BarcodeSheetPreviewModal: React.FC<BarcodeSheetPreviewModalProps> =
         <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-200 bg-primary text-white shrink-0">
           <div>
             <h3 className="text-sm sm:text-base font-black tracking-wide text-white">Print Preview</h3>
-            <p className="text-[11px] sm:text-xs text-primary-hover font-semibold">
+            <p className="text-[11px] sm:text-xs text-white/90 font-semibold">
               {individualLabels.length} Labels (1 Barcode Per Page • {sizeConfig.name} • {sizeConfig.widthMm} × {sizeConfig.heightMm} mm)
             </p>
           </div>

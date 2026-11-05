@@ -391,7 +391,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
               <h2 className="text-sm sm:text-base font-black tracking-wide text-white">
                 Print Barcode Labels ({BRAND_EN})
               </h2>
-              <p className="text-[11px] text-primary-hover font-semibold">
+              <p className="text-[11px] text-white/90 font-semibold">
                 Generate physical retail stickers for this SKU
               </p>
             </div>
