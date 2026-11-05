@@ -2027,11 +2027,11 @@ export default function Dashboard() {
         {/* Desktop brand header */}
         <div className={`hidden lg:flex items-center relative transition-all duration-300 shrink-0 ${sidebarCollapsed ? 'flex-col items-center pt-5 pb-4 px-2 gap-2 border-b border-white/20' : 'p-6 justify-between gap-3 border-b border-white/20'}`}>
           <Link to="/pos" title="Go to Billing Panel" className={`flex items-center gap-2.5 min-w-0 transition-all duration-300 ${sidebarCollapsed ? 'justify-center' : 'flex-1'}`}>
-            <div className={`shrink-0 flex items-center justify-center ${sidebarCollapsed ? 'h-14 w-14' : 'h-[72px] w-[69px]'}`}>
+            <div className={`shrink-0 flex items-center justify-center ${sidebarCollapsed ? 'h-14 w-14' : 'h-[78px] w-[75px]'}`}>
               <img src={SIDEBAR_LOGO} alt={BRAND_EN} className="h-full w-full object-contain" />
             </div>
             {!sidebarCollapsed && (
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col justify-center min-w-0 self-stretch pt-1">
                 <h1 className="text-[17px] leading-none font-black tracking-wide text-white whitespace-nowrap">{BRAND_EN}</h1>
                 {BRAND_TAGLINE && <p className="mt-1.5 text-[10px] leading-snug font-bold uppercase tracking-[0.08em] text-white/95 break-words">{BRAND_TAGLINE}</p>}
               </div>
