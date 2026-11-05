@@ -99,9 +99,9 @@ const shortMode = (mode?: string) => {
 }
 
 const MONO = "'Consolas', 'SFMono-Regular', 'Menlo', 'Courier New', monospace"
-// Text greys kept dark enough to stay crisp on screen, in downloaded PDFs and in print
-const MUTED = '#4B5563'
-const SOFT = '#374151'
+// All invoice text is black so it stays crisp on screen, in downloaded PDFs and in print
+const MUTED = '#111111'
+const SOFT = '#111111'
 const LINE = '#E5E7EB'
 const money = (n: number) => formatCurrency(n).replace(/^₹\s*/, '')
 
@@ -165,7 +165,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
   )
   const sumRow = (name: React.ReactNode, value: string, opts: { small?: boolean; muted?: boolean } = {}) => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, padding: opts.small ? '5px 0' : '7px 0' }}>
-      <span style={{ fontSize: opts.small ? 11 : 13, fontWeight: opts.small ? 600 : 500, color: opts.small ? MUTED : '#1F2937', textTransform: opts.small ? 'uppercase' : undefined, letterSpacing: opts.small ? 0.6 : undefined }}>{name}</span>
+      <span style={{ fontSize: opts.small ? 11 : 13, fontWeight: opts.small ? 600 : 500, color: opts.small ? MUTED : '#111111', textTransform: opts.small ? 'uppercase' : undefined, letterSpacing: opts.small ? 0.6 : undefined }}>{name}</span>
       <span style={{ fontFamily: MONO, fontSize: opts.small ? 11 : 13, fontWeight: 600, color: opts.muted ? SOFT : '#111111', whiteSpace: 'nowrap' }}>{value}</span>
     </div>
   )
@@ -198,7 +198,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 23, fontWeight: 800, color: accent, lineHeight: 1.15, letterSpacing: 0.3 }}>{BRAND_EN.toUpperCase()}</div>
             {BRAND_ADDRESS && <div style={{ fontSize: 12.5, color: SOFT, lineHeight: 1.65, marginTop: 6, maxWidth: 320 }}>{BRAND_ADDRESS}</div>}
-            <div style={{ fontSize: 12.5, color: '#1F2937', lineHeight: 1.65, marginTop: 8 }}>
+            <div style={{ fontSize: 12.5, color: '#111111', lineHeight: 1.65, marginTop: 8 }}>
               {BRAND_PRIMARY_PHONE_DISPLAY && <div>Phone: {BRAND_PRIMARY_PHONE_DISPLAY}</div>}
               {BRAND_EMAIL && <div>Email: {BRAND_EMAIL}</div>}
               {isGst && <div style={{ fontWeight: 700, color: '#111111' }}>GSTIN: {BRAND_GSTIN || '–'} • State Code: {stateCode}</div>}
@@ -223,7 +223,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
         <div style={{ minWidth: 0 }}>
           <div style={label}>Billed To</div>
           <div style={{ fontSize: 14.5, fontWeight: 700, marginTop: 6 }}>{customerName || 'Walk-in Customer'}</div>
-          {phone && <div style={{ fontFamily: MONO, fontSize: 12.5, color: '#1F2937', marginTop: 4 }}>{formatPhoneDisplay(phone)}</div>}
+          {phone && <div style={{ fontFamily: MONO, fontSize: 12.5, color: '#111111', marginTop: 4 }}>{formatPhoneDisplay(phone)}</div>}
           {address && address !== 'POS Counter' && <div style={{ fontSize: 12, color: SOFT, marginTop: 4, maxWidth: 360, lineHeight: 1.5 }}>{address}</div>}
         </div>
         <div style={{ textAlign: 'right', marginLeft: 'auto' }}>
@@ -273,7 +273,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
                     })()}
                   </td>
                   <td style={{ ...td, textAlign: 'center', fontWeight: 700, whiteSpace: 'nowrap' }}>{n.unit_type === 'unit' ? n.quantity : formatQuantityDisplay(n.quantity, n.unit, n.unit_type)}</td>
-                  <td style={{ ...td, textAlign: 'right', fontFamily: MONO, fontSize: 12.5, color: '#1F2937' }}>{money(n.base_price)}</td>
+                  <td style={{ ...td, textAlign: 'right', fontFamily: MONO, fontSize: 12.5, color: '#111111' }}>{money(n.base_price)}</td>
                   <td style={{ ...td, textAlign: 'right', fontFamily: MONO, fontSize: 12.5, fontWeight: 700 }}>{money(n.line_total)}</td>
                 </tr>
               )
@@ -294,7 +294,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
           {mode === 'SPLIT' && paymentMode && <div style={{ fontSize: 11.5, color: SOFT, marginTop: 4 }}>{paymentMode}</div>}
           {notes && notes.trim() && (
             <div style={{ marginTop: 22 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#1F2937' }}>Terms &amp; Notes:</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#111111' }}>Terms &amp; Notes:</div>
               <div style={{ fontSize: 11.5, color: SOFT, marginTop: 5, lineHeight: 1.6, whiteSpace: 'pre-line' }}>{notes.trim()}</div>
             </div>
           )}
@@ -323,7 +323,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
             <div style={{ marginTop: 10, borderTop: `1px solid ${LINE}`, paddingTop: 4 }}>
               {paymentRows.map((row, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: row.sub ? '3px 0 3px 10px' : '6px 0' }}>
-                  <span style={{ fontSize: row.sub ? 11 : 12.5, color: row.sub ? SOFT : '#1F2937', fontWeight: row.accent ? 700 : 400 }}>{row.label}</span>
+                  <span style={{ fontSize: row.sub ? 11 : 12.5, color: row.sub ? SOFT : '#111111', fontWeight: row.accent ? 700 : 400 }}>{row.label}</span>
                   <span style={{ fontFamily: MONO, fontSize: row.sub ? 11 : 12.5, fontWeight: row.accent ? 800 : 600 }}>{formatCurrency(row.value)}</span>
                 </div>
               ))}

@@ -49,12 +49,12 @@ export function advanceReceiptPdf(order: AdvanceOrder, payments: AdvancePayment[
   doc.setFillColor('#111111'); doc.rect(0, 0, 210, 5, 'F')
   try { doc.addImage(BRAND_PRINT_LOGO, 'PNG', 16, 9, 16, 16) } catch (_err) { /* ignore missing logo */ }
   doc.setTextColor('#111111'); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(BRAND_EN.toUpperCase(), 38, 19)
-  doc.setFont('helvetica', 'normal'); doc.setTextColor('#374151'); doc.setFontSize(8); doc.text('ADVANCE RECEIPT - NOT A TAX INVOICE', 38, 26)
+  doc.setFont('helvetica', 'normal'); doc.setTextColor('#111111'); doc.setFontSize(8); doc.text('ADVANCE RECEIPT - NOT A TAX INVOICE', 38, 26)
 
   doc.setFont('helvetica', 'normal'); doc.text(BRAND_ADDRESS, 194, 20, { align: 'right', maxWidth: 76 }); doc.text(BRAND_PRIMARY_PHONE_DISPLAY, 194, 30, { align: 'right' })
   doc.setDrawColor('#A1A1AA'); doc.line(16, 38, 194, 38)
   doc.setTextColor('#1F1F1F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.text(order.deposit_id, 16, 51)
-  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor('#374151'); doc.text(`Created: ${new Date(order.created_at).toLocaleString('en-IN')}`, 194, 51, { align: 'right' })
+  doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor('#111111'); doc.text(`Created: ${new Date(order.created_at).toLocaleString('en-IN')}`, 194, 51, { align: 'right' })
   const rows = [
     ['Customer', order.customer_name], ['Phone', formatPhoneDisplay(order.phone)], ['Address', order.address || '-'], ['Product', order.product_name],
     ['Category', order.category || '-'], ['Expected delivery', new Date(`${order.expected_delivery_date}T00:00:00`).toLocaleDateString('en-IN')],
@@ -64,7 +64,7 @@ export function advanceReceiptPdf(order: AdvanceOrder, payments: AdvancePayment[
     const wrapped = doc.splitTextToSize(String(value), 126) as string[]
     const height = Math.max(8, wrapped.length * 4 + 3)
     if (y + height > 260) { doc.addPage(); y = 20 }
-    doc.setFont('helvetica', 'bold'); doc.setTextColor('#374151'); doc.text(label.toUpperCase(), 16, y)
+    doc.setFont('helvetica', 'bold'); doc.setTextColor('#111111'); doc.text(label.toUpperCase(), 16, y)
     doc.setFont('helvetica', 'normal'); doc.setTextColor('#1F1F1F'); doc.text(wrapped, 64, y); y += height
   })
   y += 4
@@ -86,7 +86,7 @@ export function advanceReceiptPdf(order: AdvanceOrder, payments: AdvancePayment[
   lines.forEach(line => {
     doc.setFont('helvetica', line.sub ? 'normal' : 'bold')
     doc.setFontSize(line.sub ? 8 : 9)
-    doc.setTextColor(line.accent ? '#52525B' : line.sub ? '#374151' : '#1F2937')
+    doc.setTextColor(line.accent ? '#52525B' : line.sub ? '#111111' : '#111111')
     doc.text(line.sub ? `    ${line.label}` : line.label, 22, rowY)
     doc.text(pdfMoney(line.value), 188, rowY, { align: 'right' })
     rowY += line.sub ? 6 : 8
@@ -94,7 +94,7 @@ export function advanceReceiptPdf(order: AdvanceOrder, payments: AdvancePayment[
   y += boxHeight
   doc.setFont('helvetica', 'bold'); doc.setTextColor('#b45309'); doc.setFontSize(9); doc.text('This receipt records an advance payment only. It is not a final invoice.', 105, y + 13, { align: 'center' })
   doc.setDrawColor('#F3F4F6'); doc.line(16, 275, 194, 275)
-  doc.setTextColor('#374151'); doc.setFontSize(8); doc.text('THANK YOU FOR CHOOSING US', 105, 283, { align: 'center' })
+  doc.setTextColor('#111111'); doc.setFontSize(8); doc.text('THANK YOU FOR CHOOSING US', 105, 283, { align: 'center' })
   doc.setTextColor('#111111'); doc.setFontSize(11); doc.text(BRAND_EN.toUpperCase(), 105, 290, { align: 'center', charSpace: 1.2 })
   return new File([doc.output('blob')], `Advance-Receipt-${order.deposit_id}.pdf`, { type: 'application/pdf' })
 }

@@ -45,7 +45,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   const right = 194
   const primaryColor = '#111111' // Deep Royal Navy
   const ink = '#1F1F1F'
-  const muted = '#374151'
+  const muted = '#111111'
   let y = 16
   const ensureSpace = (height: number) => { if (y + height > 266) { doc.addPage(); y = 20 } }
 
@@ -146,8 +146,8 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
 
   y = Math.max(y + 6, 150)
   const rows: Array<[string, string, string]> = [['Subtotal', money(data.subtotal), ink]]
-  if ((data.discountAmount || 0) > 0) rows.push([`Coupon${data.couponCode ? ` (${data.couponCode})` : ''}`, `-${money(data.discountAmount || 0)}`, '#4B5563'])
-  if ((data.manualDiscountAmount || 0) > 0) rows.push(['Discount', `-${money(data.manualDiscountAmount || 0)}`, '#4B5563'])
+  if ((data.discountAmount || 0) > 0) rows.push([`Coupon${data.couponCode ? ` (${data.couponCode})` : ''}`, `-${money(data.discountAmount || 0)}`, '#111111'])
+  if ((data.manualDiscountAmount || 0) > 0) rows.push(['Discount', `-${money(data.manualDiscountAmount || 0)}`, '#111111'])
   if ((data.cgstAmount || 0) > 0 || (data.sgstAmount || 0) > 0) {
     rows.push(['CGST', money(data.cgstAmount || 0), ink])
     rows.push(['SGST', money(data.sgstAmount || 0), ink])
@@ -173,7 +173,7 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
     data.paymentRows.forEach(row => {
       doc.setFont('helvetica', row.sub ? 'normal' : 'bold')
       doc.setFontSize(row.sub ? 7 : 8)
-      doc.setTextColor(row.accent ? '#047857' : row.sub ? muted : '#374151')
+      doc.setTextColor(row.accent ? '#047857' : row.sub ? muted : '#111111')
       doc.text(row.sub ? `    ${row.label}` : row.label, 166, y, { align: 'right' })
       doc.text(money(row.value), right - 4, y, { align: 'right' })
       y += row.sub ? 5 : 6.5
