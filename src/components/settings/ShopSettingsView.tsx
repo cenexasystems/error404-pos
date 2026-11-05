@@ -325,7 +325,7 @@ export const ShopSettingsView: React.FC = () => {
             </div>
             <div>
               <span className={label}>Instagram ID</span>
-              <IconInput icon={<AtSign size={17} />} value={form.instagram} onChange={set('instagram')} placeholder="naayan.official" />
+              <IconInput icon={<AtSign size={17} />} value={form.instagram} onChange={set('instagram')} placeholder="error404.official" />
             </div>
             <div>
               <span className={label}>GSTIN (on GST invoices)</span>
