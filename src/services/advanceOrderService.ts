@@ -183,11 +183,15 @@ export async function listAdvanceOrders(): Promise<AdvanceOrder[]> {
             }
           }
         }
+        // The database is the source of truth whenever it answers. With a database configured,
+        // orders are never created only in this browser (a failed save shows an error), so any
+        // cached order missing from the database was deleted there and must not come back.
         const remoteIds = new Set(remote.map(r => r.id))
-        const localOnly = local.filter(l => !remoteIds.has(l.id))
-        const merged = [...remote, ...localOnly].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        saveLocalOrders(merged)
-        return merged
+        const sorted = [...remote].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        saveLocalOrders(sorted)
+        saveLocalTimeline(loadLocalTimeline().filter(t => remoteIds.has(t.advance_order_id)))
+        saveLocalPayments(loadLocalPayments().filter(p => remoteIds.has(p.advance_order_id)))
+        return sorted
       }
     } catch (err) { console.error('[listAdvanceOrders] Exception:', err) }
   }
