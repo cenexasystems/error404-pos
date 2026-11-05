@@ -679,7 +679,7 @@ export default function AdvanceOrders({ onOrderCompleted }: AdvanceOrdersProps =
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-primary-hover tracking-wider font-mono">{selected.deposit_id}</span>
+                  <span className="text-xs font-black text-white/90 tracking-wider font-mono">{selected.deposit_id}</span>
                   <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${STATUS_STYLES[selected.status]}`}>
                     {STATUS_LABELS[selected.status]}
                   </span>
