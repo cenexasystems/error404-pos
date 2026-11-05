@@ -1,5 +1,5 @@
 import React from 'react'
-import { BRAND_ADDRESS, BRAND_EMAIL, BRAND_EN, BRAND_GSTIN, BRAND_PRIMARY_PHONE_DISPLAY } from '../lib/brand'
+import { BRAND_ADDRESS, BRAND_EMAIL, BRAND_EN, BRAND_GSTIN, BRAND_PRIMARY_PHONE_DISPLAY, BRAND_TAGLINE } from '../lib/brand'
 import { formatCurrency, formatQuantityDisplay, normalizeStructuredOrderItem, formatInvoiceNo } from '../lib/retail'
 import { formatPhoneDisplay } from '../lib/phone'
 import { amountInWords } from '../lib/amountInWords'
@@ -193,12 +193,13 @@ export const Invoice: React.FC<InvoiceProps> = ({
     >
       {/* ── HEADER ─────────────────────────────────────────────── */}
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20 }}>
-        <div style={{ display: 'flex', gap: 16, minWidth: 0, flex: '1 1 300px' }}>
-          <div style={{ width: 84, height: 88, flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, minWidth: 0, flex: '1 1 300px' }}>
+          <div style={{ width: 96, height: 100, flexShrink: 0 }}>
             <img src={INVOICE_LOGO} alt={BRAND_EN} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 23, fontWeight: 800, color: accent, lineHeight: 1.15, letterSpacing: 0.3 }}>{BRAND_EN.toUpperCase()}</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: accent, lineHeight: 1.1, letterSpacing: 0.5 }}>{BRAND_EN.toUpperCase()}</div>
+            {BRAND_TAGLINE && <div style={{ fontSize: 11, fontWeight: 700, color: '#111111', letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 4 }}>{BRAND_TAGLINE}</div>}
             {BRAND_ADDRESS && <div style={{ fontSize: 12.5, color: SOFT, lineHeight: 1.65, marginTop: 6, maxWidth: 320 }}>{BRAND_ADDRESS}</div>}
             <div style={{ fontSize: 12.5, color: '#111111', lineHeight: 1.65, marginTop: 8 }}>
               {BRAND_PRIMARY_PHONE_DISPLAY && <div>Phone: {BRAND_PRIMARY_PHONE_DISPLAY}</div>}

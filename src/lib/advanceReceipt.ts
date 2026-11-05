@@ -47,7 +47,7 @@ export function paymentLines(order: AdvanceOrder, payments: AdvancePayment[]): P
 export function advanceReceiptPdf(order: AdvanceOrder, payments: AdvancePayment[] = []) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   doc.setFillColor('#111111'); doc.rect(0, 0, 210, 5, 'F')
-  try { doc.addImage(INVOICE_LOGO, 'PNG', 16.3, 9, 15.4, 16) } catch (_err) { /* ignore missing logo */ }  // trimmed logo keeps its 0.96 aspect
+  try { doc.addImage(INVOICE_LOGO, 'PNG', 16.3, 9, 15.4, 16) } catch (_err) { /* ignore missing logo */ }  // full logo keeps its 0.96 aspect
   doc.setTextColor('#111111'); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(BRAND_EN.toUpperCase(), 38, 19)
   doc.setFont('helvetica', 'normal'); doc.setTextColor('#111111'); doc.setFontSize(8); doc.text('ADVANCE RECEIPT - NOT A TAX INVOICE', 38, 26)
 

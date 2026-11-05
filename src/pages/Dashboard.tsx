@@ -74,7 +74,7 @@ import { exportAnalyticsToCSV } from '../services/analyticsExport'
 import { BRAND_EN, BRAND_TAGLINE } from '../lib/brand'
 
 /** Sidebar logo: the ERROR 404 artwork in white on a transparent background, independent of the theme colour. */
-const SIDEBAR_LOGO = '/error404-logo-white.png'
+const SIDEBAR_LOGO = '/error404-logo-white.png?v=2'
 import {
   ResponsiveContainer,
   XAxis,
@@ -2027,13 +2027,13 @@ export default function Dashboard() {
         {/* Desktop brand header */}
         <div className={`hidden lg:flex items-center relative transition-all duration-300 shrink-0 ${sidebarCollapsed ? 'flex-col items-center pt-5 pb-4 px-2 gap-2 border-b border-white/20' : 'p-6 justify-between gap-3 border-b border-white/20'}`}>
           <Link to="/pos" title="Go to Billing Panel" className={`flex items-center gap-2.5 min-w-0 transition-all duration-300 ${sidebarCollapsed ? 'justify-center' : 'flex-1'}`}>
-            <div className="shrink-0 w-16 h-16">
-              <img src={SIDEBAR_LOGO} alt={BRAND_EN} className="w-full h-full object-contain" />
+            <div className={`shrink-0 flex items-center justify-center ${sidebarCollapsed ? 'h-14 w-14' : 'h-[72px] w-[69px]'}`}>
+              <img src={SIDEBAR_LOGO} alt={BRAND_EN} className="h-full w-full object-contain" />
             </div>
             {!sidebarCollapsed && (
               <div className="flex flex-col min-w-0">
-                <h1 className="text-sm leading-tight font-black tracking-tight text-white break-words">{BRAND_EN}</h1>
-                {BRAND_TAGLINE && <p className="mt-0.5 text-[9px] leading-snug font-bold tracking-wider text-white/80 break-words">{BRAND_TAGLINE}</p>}
+                <h1 className="text-[17px] leading-none font-black tracking-wide text-white whitespace-nowrap">{BRAND_EN}</h1>
+                {BRAND_TAGLINE && <p className="mt-1.5 text-[10px] leading-snug font-bold uppercase tracking-[0.08em] text-white/95 break-words">{BRAND_TAGLINE}</p>}
               </div>
             )}
           </Link>
@@ -2050,12 +2050,15 @@ export default function Dashboard() {
         {/* Mobile mini-header */}
         <div className="flex lg:hidden items-center justify-between px-3 py-2 border-b border-white/10 bg-primary shrink-0 gap-2">
           <Link to="/pos" title="Go to Billing Panel" className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-            <div className="h-12 w-12 max-sm:h-10 max-sm:w-10 shrink-0 hover:scale-105 transition-transform">
+            <div className="h-12 w-12 max-sm:h-11 max-sm:w-11 shrink-0 flex items-center justify-center hover:scale-105 transition-transform">
               <img src={SIDEBAR_LOGO} alt={BRAND_EN} className="w-full h-full object-contain" />
             </div>
             <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
-              <span className="text-[13px] sm:text-[14px] font-black text-white tracking-wide truncate min-w-0">
-                {BRAND_EN}
+              <span className="flex flex-col min-w-0">
+                <span className="text-[15px] sm:text-[16px] leading-none font-black text-white tracking-wide truncate min-w-0">
+                  {BRAND_EN}
+                </span>
+                {BRAND_TAGLINE && <span className="mt-1 text-[9px] leading-none font-bold uppercase tracking-[0.06em] text-white/95 truncate">{BRAND_TAGLINE}</span>}
               </span>
               <span className="shrink-0 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded whitespace-nowrap bg-white/10 text-white/85 border border-white/20">
                 {role === 'admin' ? 'ADMIN' : 'STAFF'}
