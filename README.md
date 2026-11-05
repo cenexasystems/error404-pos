@@ -1,6 +1,17 @@
-# NAAYAN - Wholesale & POS Billing
+# ERROR 404 – POS & Billing
 
-React + Vite billing, inventory and order administration for NAAYAN, backed by **Neon PostgreSQL**.
+Point-of-sale, billing, inventory and order administration for **ERROR 404 — Men's Outfits & Accessories**.
+Built with React + Vite and backed by **Neon PostgreSQL**. Live at <https://error404-pos.vercel.app>.
+
+## Features
+
+- **Billing Panel** — POS bills with GST (CGST/SGST), coupons, manual discounts, delivery charge, split payments
+  (cash / QR / card), barcode scanning and A4 / A5 / thermal printing
+- **Advance Orders** — deposits, Pending → Completed workflow, one final invoice on completion, receipts
+- **Order History** — search, filters, edit remarks / reference number, invoice preview, PDF download and WhatsApp share
+- **Inventory** — products and variants, stock adjustments and history, low-stock alerts, barcode label printing
+- **Analytics Dashboard**, **Expense Tracker**, **Birthdays** and **Coupons** (including customer-specific coupons)
+- Public invoice page and installable app (PWA)
 
 ## How it fits together
 
@@ -70,15 +81,17 @@ Never give a database or server variable a `VITE_` prefix.
 
 ## Brand Identity & Contact
 
-- **Store Name:** NAAYAN
-- **Owner:** Balaji K
-- **Address:** 14/1 West Car Street, Nehru Maidhanam, Chokkalingapuram, Aruppukottai - 626101
-- **Theme:** grey (accent `#3F3F46`)
+- **Store Name:** ERROR 404
+- **Tagline:** Men's Outfits & Accessories
+- **Shop / WhatsApp:** +91 83002 80869
+- **Email:** error404mensoutfit@gmail.com
+- **Website:** <https://error404-pos.vercel.app>
 
-Phone numbers, email, Instagram, logo, tagline and the accent colour are edited by the admin in
-**Dashboard → Settings**. They are saved in Supabase (`store_settings`, see `neon/migrations/`) and cached on each device. Defaults live in `src/lib/brand.ts`.
+Phone numbers, email, address, Instagram, logo, tagline and the accent colour are edited by the admin in
+**Dashboard → Settings**. They are saved in the database (`store_settings`, see `neon/migrations/`) and cached on each
+device. Defaults live in `src/lib/brand.ts`.
 
 ## Logo
 
-The default logo is `public/naayan-logo.png`. Upload the real logo from Dashboard → Settings, or replace that file
+The default logo is `public/error404-logo.png`. Upload the real logo from Dashboard → Settings, or replace that file
 (keep the same name) and run `npm run generate:icons` to regenerate the PWA icons, favicons and the print/PDF logo.
