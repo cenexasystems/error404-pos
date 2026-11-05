@@ -26,6 +26,7 @@ export const RPC_ALLOWLIST = new Set([
   'create_order_without_stock',
   'get_expense_summary_metrics',
   'get_public_invoice_by_number',
+  'record_coupon_send',
   'update_advance_order_status',
   'complete_advance_order',
   'complete_advance_order_v2',

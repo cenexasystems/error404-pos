@@ -1,5 +1,5 @@
 import { CouponShareModal } from '../components/coupons/CouponShareModal'
-import { getCouponSends } from '../lib/couponSends'
+import { fetchCouponRecipients, type CouponSendStats } from '../lib/couponSends'
 import { advanceFinalInvoiceProps } from '../lib/advanceInvoice'
 import React, { useCallback, useEffect, useState, useMemo, useRef, type FormEvent } from 'react'
 import {
@@ -103,6 +103,7 @@ type DashboardCoupon = {
   usage_limit: number | null
   usage_count: number
   min_order_value: number
+  restrict_to_recipients?: boolean
 }
 type TabKey = 'overview' | 'whatsapp' | 'pos_analytics' | 'billing' | 'advance_orders' | 'inventory' | 'expenses' | 'birthdays' | 'products' | 'categories' | 'coupons' | 'users' | 'history' | 'settings'
 type PosAnalyticsTab = 'revenue' | 'today' | 'products' | 'categories' | 'coupons'
@@ -272,8 +273,9 @@ export default function Dashboard() {
   const [couponSaveSuccess, setCouponSaveSuccess] = useState('')
   const [editingCouponId, setEditingCouponId] = useState<number | null>(null)
   const [couponSearch, setCouponSearch] = useState('')
-  const couponRestrictNew = false
+  const [couponRestrictNew, setCouponRestrictNew] = useState(false)
   const [couponSendsTick, setCouponSendsTick] = useState(0)
+  const [couponRecipients, setCouponRecipients] = useState<{ ready: boolean; byCode: Map<string, CouponSendStats> }>({ ready: false, byCode: new Map() })
   const couponLabel = 'mb-2 block text-[11px] font-bold uppercase tracking-[0.08em] text-[#4B5563]'
   const couponInput = 'h-12 w-full rounded-xl border border-transparent bg-[#F7F5F2] px-4 text-[14px] text-[#111111] outline-none transition-colors placeholder:text-gray-400 focus:border-[#111111] focus:bg-white'
 
@@ -968,7 +970,7 @@ export default function Dashboard() {
           .order('created_at', { ascending: false })
           .limit(1000),
         db.from('coupons')
-          .select('id, code, percentage, is_active, expiry_date, usage_limit, usage_count, min_order_value')
+          .select('*')
           .order('created_at', { ascending: false }),
         expenseService.getExpenses(),
       ])
@@ -1031,7 +1033,7 @@ export default function Dashboard() {
     if (!isDatabaseConfigured) return
     const { data } = await db
       .from('coupons')
-      .select('id, code, percentage, is_active, expiry_date, usage_limit, usage_count, min_order_value')
+      .select('*')
       .order('created_at', { ascending: false })
     setCoupons((data || []) as DashboardCoupon[])
   }, [])
@@ -1304,6 +1306,7 @@ export default function Dashboard() {
       expiry_date: couponForm.expiry_date || null,
       usage_limit: couponForm.usage_limit ? toNumber(couponForm.usage_limit, 0) : null,
       min_order_value: toNumber(couponForm.min_order_value, 0),
+      ...(couponRecipients.ready ? { restrict_to_recipients: couponRestrictNew } : {}),
     }
     let error: unknown = null
     if (editingCouponId !== null) {
@@ -1326,6 +1329,7 @@ export default function Dashboard() {
       setCouponForm({ code: '', percentage: '', expiry_date: '', usage_limit: '', min_order_value: '' })
       setEditingCouponId(null)
       setCouponSaveSuccess(editingCouponId !== null ? 'Coupon updated!' : 'Coupon created!')
+      setCouponRestrictNew(false)
       await loadCoupons()
     }
   }
@@ -1339,12 +1343,14 @@ export default function Dashboard() {
       usage_limit: coupon.usage_limit !== null ? String(coupon.usage_limit) : '',
       min_order_value: coupon.min_order_value ? String(coupon.min_order_value) : '',
     })
+    setCouponRestrictNew(!!coupon.restrict_to_recipients)
     setCouponSaveError('')
     setCouponSaveSuccess('')
   }
 
   const cancelEditCoupon = () => {
     setEditingCouponId(null)
+    setCouponRestrictNew(false)
     setCouponForm({ code: '', percentage: '', expiry_date: '', usage_limit: '', min_order_value: '' })
     setCouponSaveError('')
     setCouponSaveSuccess('')
@@ -1399,6 +1405,14 @@ export default function Dashboard() {
     if (tab === 'coupons' || tab === 'pos_analytics') void loadCoupons()
     if (tab === 'history') void loadData()
   }, [tab, loadUsers, loadCoupons, loadData])
+
+  // Who each coupon was sent to (customer-only coupons). Reloads after every send.
+  useEffect(() => {
+    if (tab !== 'coupons' || !isDatabaseConfigured) return
+    let live = true
+    void fetchCouponRecipients().then(r => { if (live) setCouponRecipients(r) })
+    return () => { live = false }
+  }, [tab, couponSendsTick])
 
   useEffect(() => {
     if (tab === 'pos_analytics' && posAnalyticsTab === 'coupons') {
@@ -4362,10 +4376,10 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between gap-4 rounded-xl bg-[#F7F5F2] px-4 py-3.5">
                     <div className="min-w-0">
                       <p id="coupon-restrict-label" className="text-[13px] font-bold text-[#111111]">{l("Only for customers it's sent to", 'அனுப்பிய வாடிக்கையாளர்களுக்கு மட்டும்')}</p>
-                      <p className="text-[11px] text-[#6B7280]">{l('Customer-only restrictions are not enabled. Existing coupon rules apply.', 'இந்தப் பக்கத்திலிருந்து அனுப்பும் எண்களுக்கு மட்டும்.')}</p>
+                      <p className="text-[11px] text-[#6B7280]">{couponRecipients.ready ? l('Works only for the mobile numbers you send it to from this page.', 'இந்தப் பக்கத்திலிருந்து அனுப்பும் எண்களுக்கு மட்டும்.') : l('Needs the coupon database update (migration 0038).', 'தரவுத்தள புதுப்பிப்பு தேவை.')}</p>
                     </div>
-                    <button type="button" role="switch" aria-checked={couponRestrictNew} aria-labelledby="coupon-restrict-label" disabled
-                      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${couponRestrictNew ? 'bg-emerald-600' : 'bg-gray-300'}`}>
+                    <button type="button" role="switch" aria-checked={couponRestrictNew} aria-labelledby="coupon-restrict-label" disabled={!couponRecipients.ready} onClick={() => setCouponRestrictNew(v => !v)}
+                      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${couponRestrictNew ? 'bg-emerald-600' : 'bg-gray-300'}`}>
                       <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${couponRestrictNew ? 'left-6' : 'left-1'}`} />
                     </button>
                   </div>
@@ -4395,7 +4409,7 @@ export default function Dashboard() {
                     const usedCount = couponUsageByCode.get(String(coupon.code || '').trim().toUpperCase()) ?? coupon.usage_count
                     const isExhausted = coupon.usage_limit !== null && usedCount >= coupon.usage_limit
                     const isEditing = editingCouponId === coupon.id
-                    const sends = getCouponSends(coupon.code)
+                    const sends = couponRecipients.byCode.get(String(coupon.code || '').trim().toUpperCase()) || { phones: [], sent: 0 }
                     const pill = 'rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider'
                     return (
                       <div key={coupon.id} role="button" tabIndex={0} aria-label={`Send coupon ${coupon.code}`}
@@ -4407,6 +4421,7 @@ export default function Dashboard() {
                           <span className={`${pill} ${coupon.is_active ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-amber-200 bg-amber-50 text-amber-700'}`}>
                             {coupon.is_active ? l('Active', 'செயலில்') : l('Paused', 'நிறுத்தம்')}
                           </span>
+                          {coupon.restrict_to_recipients && <span className={`${pill} border-amber-200 bg-amber-50 text-amber-800`}>{sends.phones.length ? `Only ${sends.phones.length} phone${sends.phones.length > 1 ? 's' : ''}` : 'Sent-to only'}</span>}
                           {isExpired && <span className={`${pill} border-red-200 bg-red-50 text-red-700`}>Expired</span>}
                           {!isExpired && isExhausted && <span className={`${pill} border-amber-200 bg-amber-50 text-amber-800`}>Limit reached</span>}
                         </div>
@@ -4416,7 +4431,7 @@ export default function Dashboard() {
                         <p className="mt-0.5 text-[11px] text-[#6B7280]">
                           Used {usedCount} time{usedCount === 1 ? '' : 's'}{coupon.usage_limit ? ` of ${coupon.usage_limit}` : ''}
                           {coupon.expiry_date ? ` · expires ${new Date(coupon.expiry_date).toLocaleDateString('en-IN')}` : ' · no expiry'}
-                          {sends.count > 0 && ` · sharing opened ${sends.count}×`}
+                          {sends.sent > 0 && ` · sent ${sends.sent}×`}
                         </p>
                         <div className="mt-3 flex flex-wrap items-center gap-2" onClick={e => e.stopPropagation()}>
                           <button type="button" onClick={() => setSharingCoupon(coupon)} aria-label={`Share coupon ${coupon.code} on WhatsApp`}
@@ -4616,7 +4631,9 @@ export default function Dashboard() {
         }}
       />
 
-      {sharingCoupon && <CouponShareModal key={sharingCoupon.id} coupon={sharingCoupon} onClose={() => setSharingCoupon(null)} onSent={() => setCouponSendsTick(t => t + 1)} />}
+      {sharingCoupon && <CouponShareModal key={sharingCoupon.id} coupon={sharingCoupon} ready={couponRecipients.ready}
+        phonesSoFar={couponRecipients.byCode.get(sharingCoupon.code.trim().toUpperCase())?.phones.length || 0}
+        onClose={() => setSharingCoupon(null)} onSent={() => { setCouponSendsTick(t => t + 1); void loadCoupons() }} />}
 
       {/* Edit Order Details Modal */}
       {editingOrder && (

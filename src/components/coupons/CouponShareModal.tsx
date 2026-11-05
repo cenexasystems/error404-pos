@@ -1,39 +1,40 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Download, MessageCircle, X } from 'lucide-react'
 import { couponPdf, downloadCouponFile } from '../../lib/couponPdf'
-import { couponBrand, couponExpiry, couponPublicUrl, recordCouponSend } from '../../lib/couponSends'
-import { normalizePhone, toWhatsAppUrl } from '../../lib/phone'
+import { couponBrand, couponExpiry, couponPublicUrl, recordCouponSend, setCouponRestricted } from '../../lib/couponSends'
+import { toWhatsAppUrl } from '../../lib/phone'
 import { formatCurrency } from '../../lib/retail'
 
-type ShareCoupon = { code: string; percentage: number; min_order_value: number; expiry_date: string | null }
-
-function buildMessage(c: ShareCoupon, name: string, link: string, restricted: boolean) {
-  const brand = couponBrand()
-  const validity = c.expiry_date ? ` (valid till ${couponExpiry(c.expiry_date)})` : ''
-  const lines = [
-    `Hi ${name.trim() || 'there'}! 🎁`,
-    `Here's a *${c.percentage}% OFF* coupon from *${brand}*${validity}.`,
-    '',
-    `Code: *${c.code}*`,
-    ...(c.min_order_value > 0 ? [`Minimum purchase: ${formatCurrency(c.min_order_value)}`] : []),
-    ...(restricted ? ['Valid only for this mobile number.'] : []),
-    'Show it at billing to claim your offer.',
-    '',
-    'Download Your Coupon:',
-    link,
-  ]
-  return lines.join('\n')
+type ShareCoupon = {
+  id: number; code: string; percentage: number; min_order_value: number; expiry_date: string | null
+  restrict_to_recipients?: boolean
 }
 
-export function CouponShareModal({ coupon, onClose, onSent }: { coupon: ShareCoupon; onClose: () => void; onSent?: () => void }) {
+/** Same structure as the reference: greeting, offer line, code, how to use — then the link on its own line. */
+function couponMessage(c: ShareCoupon, name: string) {
+  const terms = [c.min_order_value > 0 ? `on orders of ${formatCurrency(c.min_order_value)}+` : '', c.expiry_date ? `valid till ${couponExpiry(c.expiry_date)}` : '']
+    .filter(Boolean).join(', ')
+  return [
+    `Hi${name ? ` ${name}` : ''}! 🎉`,
+    `Here's a *${c.percentage}% OFF* coupon from *${couponBrand()}*${terms ? ` (${terms})` : ''}.`,
+    '',
+    `Code: *${c.code}*`,
+    'Show it at billing to claim your offer.',
+  ]
+}
+
+export function CouponShareModal({ coupon, phonesSoFar = 0, ready = true, onClose, onSent }: {
+  coupon: ShareCoupon; phonesSoFar?: number; ready?: boolean; onClose: () => void; onSent?: () => void
+}) {
   const [phone, setPhone] = useState('')
   const [customerName, setCustomerName] = useState('')
-  const onlyThisCustomer = false
+  const [onlyThisCustomer, setOnlyThisCustomer] = useState(!!coupon.restrict_to_recipients)
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
-  const dialogRef = useRef<HTMLFormElement>(null)
+  const [readyFile, setReadyFile] = useState<File | null>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -51,37 +52,49 @@ export function CouponShareModal({ coupon, onClose, onSent }: { coupon: ShareCou
     return () => { document.removeEventListener('keydown', onKey); previous?.focus() }
   }, [onClose])
 
-  const cleanPhone = normalizePhone(phone)
-  const link = couponPublicUrl(coupon, { customerName })
-  const message = buildMessage(coupon, customerName, link, onlyThisCustomer)
+  const validPhone = /^[6-9]\d{9}$/.test(phone)
+  const name = customerName.trim()
+  const link = couponPublicUrl(coupon, { customerName: name })
+  const lines = couponMessage(coupon, name)
+  const linkMessage = [...lines, '', 'Download your coupon:', link].join('\n')
+  const lockedTo = onlyThisCustomer ? (name || phone) : ''
 
-  // Pre-build the PDF while the dialog is open so "Generate & share PDF" can call the share sheet
-  // straight from the click (browsers reject navigator.share once the click's activation has expired).
-  const pdfKey = JSON.stringify([coupon, customerName.trim(), onlyThisCustomer])
+  // The PDF is rendered ahead of the click so the share sheet opens inside the click (browsers block it later).
+  const pdfKey = JSON.stringify([coupon.code, name, lockedTo, onlyThisCustomer])
   const pdfCache = useRef<{ key: string; file: Promise<File> } | null>(null)
   const getPdf = useCallback(() => {
     if (pdfCache.current?.key !== pdfKey) {
-      const file = couponPdf(coupon, { restricted: onlyThisCustomer, customerName })
+      const file = couponPdf(coupon, { restricted: onlyThisCustomer, customerName: name || undefined, lockedTo })
       file.catch(() => { if (pdfCache.current?.file === file) pdfCache.current = null })
       pdfCache.current = { key: pdfKey, file }
     }
     return pdfCache.current.file
-  }, [coupon, customerName, onlyThisCustomer, pdfKey])
+  }, [coupon, name, lockedTo, onlyThisCustomer, pdfKey])
   useEffect(() => {
-    const t = setTimeout(() => { void getPdf().catch(() => {}) }, 600)
+    if (!validPhone) return
+    const t = setTimeout(() => { void getPdf().catch(() => {}) }, 500)
     return () => clearTimeout(t)
-  }, [getPdf])
-  const [readyFile, setReadyFile] = useState<File | null>(null)
+  }, [getPdf, validPhone])
   useEffect(() => { setReadyFile(null) }, [pdfKey])
 
+  /** Saves the send (and the customer-only choice) after the chat / share sheet has been used. */
+  const record = async (via: string) => {
+    if (!ready) { setNotice(via === 'WhatsApp' ? 'WhatsApp opened with the coupon link.' : 'Coupon PDF ready.'); return }
+    try {
+      await recordCouponSend(coupon.code, phone, name)
+      if (onlyThisCustomer !== !!coupon.restrict_to_recipients) await setCouponRestricted(coupon.id, onlyThisCustomer)
+      onSent?.()
+      setNotice(`${coupon.code} sent to ${name || phone} (${via}).`)
+    } catch (err) {
+      setError(`${via === 'WhatsApp' ? 'WhatsApp opened' : 'Coupon shared'}, but it could not be recorded: ${err instanceof Error ? err.message : 'try again'}.`)
+    }
+  }
 
-  const sendWhatsApp = (event: FormEvent) => {
-    event.preventDefault()
-    if (!cleanPhone) { setError('Enter a valid 10-digit WhatsApp number.'); phoneRef.current?.focus(); return }
-    setError('')
-    window.open(toWhatsAppUrl(cleanPhone, message), '_blank', 'noopener,noreferrer')
-    recordCouponSend(coupon.code, cleanPhone); onSent?.()
-    setNotice('WhatsApp opened with the coupon link.')
+  const sendWhatsApp = async () => {
+    if (!validPhone || busy) return
+    setError(''); setNotice('')
+    window.open(toWhatsAppUrl(phone, linkMessage), '_blank', 'noopener,noreferrer')
+    setBusy(true); await record('WhatsApp'); setBusy(false)
   }
 
   const canShareFiles = (() => {
@@ -89,35 +102,45 @@ export function CouponShareModal({ coupon, onClose, onSent }: { coupon: ShareCou
   })()
 
   const shareFile = async (file: File) => {
-    await navigator.share({ files: [file], text: message, title: `Coupon ${coupon.code}` })
-    if (cleanPhone) { recordCouponSend(coupon.code, cleanPhone); onSent?.() }
+    await navigator.share({ files: [file], text: lines.join('\n'), title: `Coupon ${coupon.code}` })
     setReadyFile(null)
-    setNotice('Coupon PDF shared.')
+    await record('PDF')
   }
 
   const sharePdf = async () => {
-    if (phone.trim() && !cleanPhone) { setError('Enter a valid 10-digit WhatsApp number, or leave it empty to download.'); phoneRef.current?.focus(); return }
-    setError(''); setNotice(''); setBusy(true)
+    if (!validPhone || busy) return
+    setError(''); setNotice('')
+    // No file sharing (most desktops): open the chat tab inside the click so pop-up blockers allow it.
+    const waTab = canShareFiles ? null : window.open('', '_blank')
+    setBusy(true)
     try {
       const file = await getPdf()
-      downloadCouponFile(file)
-      setNotice('Coupon PDF downloaded. You can also share the coupon link below.')
       if (canShareFiles) {
         try { await shareFile(file) }
         catch (err) {
-          if (err instanceof Error && err.name === 'AbortError') { setNotice('Sharing cancelled. Your PDF has been downloaded.'); return }
-          setReadyFile(file); setNotice('PDF downloaded. Tap Share PDF now to open your device sharing options, or use the coupon link below.')
+          if (err instanceof Error && err.name === 'AbortError') return
+          setReadyFile(file); setNotice('The PDF is ready — tap "Share PDF now".')
         }
+        return
       }
-    } catch { setError('Could not create the coupon PDF. Please try again.') }
-    finally { setBusy(false) }
+      downloadCouponFile(file)
+      const url = toWhatsAppUrl(phone, lines.join('\n'))
+      if (waTab && !waTab.closed) waTab.location.href = url
+      else window.open(url, '_blank', 'noopener,noreferrer')
+      await record('PDF')
+      setNotice(n => `${n} ${file.name} downloaded — attach it in the WhatsApp chat.`.trim())
+    } catch {
+      waTab?.close()
+      setError("Couldn't make the PDF. Please try again.")
+    } finally { setBusy(false) }
   }
+
   const label = 'mb-2 block text-[11px] font-bold uppercase tracking-[0.08em] text-[#111111]'
   const input = 'h-12 w-full rounded-xl border border-transparent bg-[#F7F5F2] px-4 text-[14px] text-[#111111] outline-none transition-colors placeholder:text-gray-400 focus:border-[#E5B94E] focus:bg-[#FFFBF0] focus:ring-2 focus:ring-[#FDE7A7]'
 
   return createPortal(
     <div className="fixed inset-0 z-[300] flex items-end justify-center bg-black/55 p-0 backdrop-blur-[2px] sm:items-center sm:p-6" onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
-      <form ref={dialogRef} onSubmit={sendWhatsApp} role="dialog" aria-modal="true" aria-labelledby="coupon-share-title" noValidate
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="coupon-share-title"
         className="max-h-[94dvh] w-full max-w-[480px] overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
         <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-4">
           <h3 id="coupon-share-title" className="min-w-0 text-[15px] font-bold text-[#111111]">
@@ -128,13 +151,14 @@ export function CouponShareModal({ coupon, onClose, onSent }: { coupon: ShareCou
 
         <div className="space-y-5 px-5 pb-5 pt-4">
           <p className="text-[12px] leading-relaxed text-gray-500">
-            Send a personalized coupon link on WhatsApp, or download the PDF and use your device's sharing options when available.
+            The coupon goes as a download link in the customer's WhatsApp chat, or as a PDF with "Generate &amp; share PDF". It is recorded once the chat or share sheet has been used.
           </p>
 
           <div>
             <label htmlFor="coupon-share-phone" className={label}>Customer phone <span className="text-red-500">*</span></label>
-            <input id="coupon-share-phone" ref={phoneRef} type="tel" inputMode="tel" autoComplete="tel" placeholder="Enter WhatsApp number"
-              value={phone} onChange={e => { setPhone(e.target.value); setError(''); setNotice('') }} className={input} />
+            <input id="coupon-share-phone" ref={phoneRef} type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="Enter WhatsApp number"
+              value={phone} onChange={e => { setPhone(e.target.value.replace(/\D/g, '').slice(-10)); setError(''); setNotice('') }} className={input} />
+            {phone && !validPhone && <span className="mt-1 block text-[11.5px] font-semibold text-amber-600">Enter a 10-digit mobile number.</span>}
           </div>
 
           <div>
@@ -145,13 +169,22 @@ export function CouponShareModal({ coupon, onClose, onSent }: { coupon: ShareCou
 
           <div className="flex items-center justify-between gap-4">
             <span id="coupon-only-label" className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#111111]">Only for this customer</span>
-            <button type="button" role="switch" disabled aria-checked={false} aria-labelledby="coupon-only-label" aria-describedby="coupon-eligibility-note"
-              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${onlyThisCustomer ? 'bg-emerald-600' : 'bg-gray-300'}`}>
+            <button type="button" role="switch" aria-checked={onlyThisCustomer} aria-labelledby="coupon-only-label" disabled={!ready}
+              onClick={() => setOnlyThisCustomer(v => !v)}
+              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-50 ${onlyThisCustomer ? 'bg-emerald-600' : 'bg-gray-300'}`}>
               <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${onlyThisCustomer ? 'left-6' : 'left-1'}`} />
             </button>
           </div>
 
-          <p id="coupon-eligibility-note" className="text-xs leading-relaxed text-gray-500">Customer-only restrictions are not enabled. Sharing with a customer does not change this coupon's existing eligibility rules.</p>
+          {!ready ? (
+            <p className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-[12px] font-semibold text-gray-600">Customer-only coupons need the coupon database update (migration 0038). Until it is applied, sends are not recorded.</p>
+          ) : onlyThisCustomer ? (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-[12px] font-semibold text-amber-800">
+              This coupon will only work for the phones it was sent to{phonesSoFar ? ` (${phonesSoFar} so far)` : ''}. Use a dedicated coupon for this.
+            </p>
+          ) : coupon.restrict_to_recipients && (
+            <p className="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-[12px] font-semibold text-sky-700">Sending with this off opens {coupon.code} to every customer again.</p>
+          )}
 
           {readyFile && (
             <div className="grid grid-cols-2 gap-2.5">
@@ -163,21 +196,20 @@ export function CouponShareModal({ coupon, onClose, onSent }: { coupon: ShareCou
           )}
           {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-[12px] font-semibold text-red-700">{error}</p>}
           {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-[12px] font-semibold text-emerald-700">{notice}</p>}
-          <a href={link} target="_blank" rel="noopener noreferrer" className="block break-all text-xs font-semibold text-emerald-700 underline">Download Your Coupon: {link}</a>
 
-          <div className="grid grid-cols-1 gap-2.5 min-[420px]:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
             <button type="button" onClick={onClose} className="h-12 rounded-xl border border-gray-300 bg-white text-[13px] font-bold text-[#111111] hover:bg-gray-50">Cancel</button>
-            <button type="submit" disabled={!cleanPhone}
-              className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-2 text-[12px] font-bold leading-tight text-white transition-colors hover:bg-emerald-600 disabled:bg-emerald-300">
+            <button type="button" disabled={!validPhone || busy} onClick={() => void sendWhatsApp()}
+              className="flex h-12 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 px-2 text-[12px] font-bold leading-tight text-white transition-colors hover:bg-emerald-600 disabled:opacity-45">
               <MessageCircle size={15} className="shrink-0" /> Send link on WhatsApp
             </button>
-            <button type="button" disabled={busy} onClick={() => void sharePdf()}
-              className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-emerald-300 bg-white px-2 text-[12px] font-bold leading-tight text-emerald-600 transition-colors hover:bg-emerald-50 disabled:opacity-60">
-              <Download size={15} className="shrink-0" /> {busy ? 'Preparing…' : 'Generate & share PDF'}
+            <button type="button" disabled={!validPhone || busy} onClick={() => void sharePdf()}
+              className="flex h-12 items-center justify-center gap-1.5 rounded-xl border border-emerald-400 bg-white px-2 text-[12px] font-bold leading-tight text-emerald-600 transition-colors hover:bg-emerald-50 disabled:opacity-45">
+              <Download size={15} className="shrink-0" /> {busy ? 'Working…' : 'Generate & share PDF'}
             </button>
           </div>
         </div>
-      </form>
+      </div>
     </div>, document.body,
   )
 }

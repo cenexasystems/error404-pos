@@ -3,11 +3,11 @@ import { BRAND_PRINT_LOGO } from '../../lib/brand'
 import type { CouponLinkData } from '../../lib/couponSends'
 export type CouponOffer = CouponLinkData
 const OLIVE = '#526035'
-export function CouponVoucher({ coupon, layout = 'card', restricted = false, customerName }: {
-  coupon: CouponOffer; layout?: 'card' | 'print' | 'preview'; restricted?: boolean; customerName?: string
+export function CouponVoucher({ coupon, layout = 'card', restricted = false, customerName, lockedTo }: {
+  coupon: CouponOffer; layout?: 'card' | 'print' | 'preview'; restricted?: boolean; customerName?: string; lockedTo?: string
 }) {
   const print = layout === 'print'
-  const terms = couponTerms(coupon, restricted)
+  const terms = couponTerms(coupon, restricted, lockedTo)
   const greeting = customerName?.trim() ? `A gift for ${customerName.trim().slice(0,40)}` : 'A gift for you'
   return <div data-coupon-voucher style={{ display:'flex', flexDirection:print ? 'row' : 'column', width:print ? 760 : '100%', minHeight:print ? 400 : undefined, borderRadius:22, overflow:'hidden', background:'#151d18', color:'#fff', fontFamily:'Arial, sans-serif', border:'1px solid #8c99684d' }}>
     <div style={{ flex:1, minWidth:0, padding:print ? '28px 32px' : 26 }}>

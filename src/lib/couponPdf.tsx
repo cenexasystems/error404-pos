@@ -5,13 +5,13 @@ import { jsPDF } from 'jspdf'
 import { CouponVoucher, type CouponOffer } from '../components/coupons/CouponVoucher'
 
 /** Renders the landscape coupon ticket into a single-page PDF sized exactly to the artwork. */
-export async function couponPdf(coupon: CouponOffer, opts: { restricted?: boolean; customerName?: string } = {}): Promise<File> {
+export async function couponPdf(coupon: CouponOffer, opts: { restricted?: boolean; customerName?: string; lockedTo?: string } = {}): Promise<File> {
   const host = document.createElement('div')
   host.style.cssText = 'position:fixed;left:-10000px;top:0;display:inline-block;padding:18px;background:#fff;box-sizing:content-box;'
   document.body.appendChild(host)
   const root = createRoot(host)
   try {
-    flushSync(() => root.render(<CouponVoucher coupon={coupon} layout="print" restricted={opts.restricted} customerName={opts.customerName} />))
+    flushSync(() => root.render(<CouponVoucher coupon={coupon} layout="print" restricted={opts.restricted} customerName={opts.customerName} lockedTo={opts.lockedTo} />))
     await document.fonts.ready
     await Promise.all(Array.from(host.querySelectorAll('img')).map(img => img.decode().catch(() => undefined)))
     const canvas = await html2canvas(host, { windowWidth:1024, scale: 2.5, backgroundColor: '#ffffff', useCORS: true, logging: false })

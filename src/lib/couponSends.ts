@@ -1,36 +1,46 @@
 import { BRAND_EN, BRAND_PRODUCTION_DOMAIN } from './brand'
 import { formatCurrency } from './retail'
+import { db } from './db'
 
 /**
- * Device-local record of who a coupon was sent to (for the "sent N×" / "only N phones" badges).
- * Stored in this browser only — no database tables are involved.
+ * Customer-specific coupons, stored in the database (migration 0038):
+ *   coupons.restrict_to_recipients  +  coupon_recipients (one row per coupon + phone).
+ * Billing rejects a restricted coupon for any phone that is not a recipient (POS check + database trigger).
  */
-type SendRecord = { phones: string[]; count: number; restricted: boolean }
-const KEY = 'error404:coupon-sends:v1'
+export type CouponSendStats = { phones: string[]; sent: number }
 
-function readAll(): Record<string, SendRecord> {
-  try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {} } catch { return {} }
-}
-function writeAll(all: Record<string, SendRecord>) {
-  try { localStorage.setItem(KEY, JSON.stringify(all)) } catch { /* storage unavailable */ }
-}
-
-export function getCouponSends(code: string): SendRecord {
-  const rec = readAll()[code.trim().toUpperCase()]
-  return { phones: rec?.phones || [], count: rec?.count || 0, restricted: !!rec?.restricted }
-}
-
-export function setCouponRestricted(code: string, restricted: boolean) {
-  const all = readAll(); const k = code.trim().toUpperCase()
-  all[k] = { ...getCouponSends(k), restricted }
-  writeAll(all)
+/** All recipients grouped by coupon code. `ready` is false until the database update has been applied. */
+export async function fetchCouponRecipients(): Promise<{ ready: boolean; byCode: Map<string, CouponSendStats> }> {
+  const byCode = new Map<string, CouponSendStats>()
+  const { data, error } = await db.from('coupon_recipients').select('coupon_code, phone, sent_count')
+  if (error) return { ready: false, byCode }
+  for (const row of (data || []) as { coupon_code: string; phone: string; sent_count: number }[]) {
+    const cur = byCode.get(row.coupon_code) || { phones: [], sent: 0 }
+    cur.phones.push(row.phone); cur.sent += Number(row.sent_count || 0)
+    byCode.set(row.coupon_code, cur)
+  }
+  return { ready: true, byCode }
 }
 
-export function recordCouponSend(code: string, phone: string) {
-  const all = readAll(); const k = code.trim().toUpperCase()
-  const cur = getCouponSends(k)
-  all[k] = { ...cur, count: cur.count + 1, phones: cur.phones.includes(phone) ? cur.phones : [...cur.phones, phone] }
-  writeAll(all)
+/** Records that the coupon was sent to this phone (counts repeat sends). */
+export async function recordCouponSend(code: string, phone10: string, customerName = '') {
+  const { error } = await db.rpc('record_coupon_send', { p_code: code.trim().toUpperCase(), p_phone: phone10, p_customer_name: customerName.trim() })
+  if (error) throw new Error(error.message || 'Could not record the coupon send')
+}
+
+export async function setCouponRestricted(couponId: number, restricted: boolean) {
+  const { error } = await db.from('coupons').update({ restrict_to_recipients: restricted }).eq('id', couponId)
+  if (error) throw new Error(error.message || 'Could not update the coupon')
+}
+
+/** Billing check for customer-only coupons. Returns an error message, or null when the phone may use it. */
+export async function checkCouponRecipient(code: string, restricted: boolean, phone: string): Promise<string | null> {
+  if (!restricted) return null
+  const phone10 = phone.replace(/\D/g, '').slice(-10)
+  if (phone10.length !== 10) return 'Only for the customer it was sent to — enter their mobile number first'
+  const { data, error } = await db.from('coupon_recipients').select('id').eq('coupon_code', code.trim().toUpperCase()).eq('phone', phone10).limit(1)
+  if (error) return 'Could not check this coupon. Try again.'
+  return (data || []).length ? null : 'Not valid for this mobile number'
 }
 
 export type CouponLinkData = { code: string; percentage: number; min_order_value: number; expiry_date: string | null }
@@ -56,11 +66,11 @@ export function couponPublicUrl(c: CouponLinkData, opts: { customerName?: string
 
 export const couponBrand = () => (BRAND_EN || 'ERROR 404').toUpperCase()
 export const couponExpiry = (d: string | null) => d ? new Date(d).toLocaleDateString('en-IN') : ''
-export function couponTerms(c: CouponLinkData, restricted = false) {
+export function couponTerms(c: CouponLinkData, restricted = false, lockedTo = '') {
   return [
     c.min_order_value > 0 ? `Minimum purchase ${formatCurrency(c.min_order_value)}` : 'On any purchase',
     ...(c.expiry_date ? [`Valid till ${couponExpiry(c.expiry_date)}`] : []),
-    ...(restricted ? ['Only for the number it was sent to'] : []),
+    ...(restricted ? [lockedTo.trim() ? `Only for ${lockedTo.trim().slice(0, 40)}` : 'Only for the mobile number it was sent to'] : []),
   ]
 }
 

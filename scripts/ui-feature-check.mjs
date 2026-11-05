@@ -52,7 +52,7 @@ for(const role of ['admin','staff']){
    await page.evaluate(()=>delete window.__opened);
    await modal.getByRole('button',{name:'Close',exact:true}).click();
    await page.getByRole('button',{name:'Share coupon FESTIVE20 on WhatsApp'}).click();
-   assert.match(await page.getByRole('dialog').getByRole('link').getAttribute('href'),/\/coupon\/FESTIVE20$/);
+   assert.equal(await page.getByRole('dialog').getByRole('link').count(),0);
    await page.keyboard.press('Escape');assert.equal(await page.getByRole('dialog').count(),0);
   }
   console.log(role,width,'navigation, screen smoke checks and coupon checks passed');

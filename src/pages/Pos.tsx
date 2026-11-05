@@ -42,6 +42,7 @@ import { fetchVariantsByProduct, type ProductVariant } from '../services/variant
 import { BarcodeScannerInput, type ScannedItemPayload } from '../components/pos/BarcodeScannerInput'
 import { db, isDatabaseConfigured } from '../lib/db'
 import { createPortal } from 'react-dom'
+import { checkCouponRecipient } from '../lib/couponSends'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type PosItem = Product & {
@@ -749,6 +750,13 @@ export default function Pos(props: PosProps = {}) {
 
       if (data.min_order_value && subtotal < Number(data.min_order_value)) {
         setCouponError(`Minimum order of ${formatCurrency(Number(data.min_order_value))} required`)
+        return
+      }
+
+      // Customer-only coupons: the bill's mobile number must be one the coupon was sent to.
+      const recipientError = await checkCouponRecipient(String(data.code), Boolean(data.restrict_to_recipients), customer.phone)
+      if (recipientError) {
+        setCouponError(recipientError)
         return
       }
 
