@@ -365,6 +365,29 @@ export async function addAdvanceEvent(orderId: string, eventType: string, label:
   saveLocalTimeline(timeline)
 }
 
+/**
+ * Makes sure the final invoice order keeps the Remarks and Reference Number entered on the advance
+ * order. The database function copies them too; this covers databases where that migration is not
+ * applied yet. Only empty fields on the order are filled, so values edited later are never overwritten.
+ */
+async function carryAdvanceNotesToOrder(advanceId: string, orderId: string) {
+  try {
+    const [{ data: advance }, { data: order }] = await Promise.all([
+      db.from('advance_orders').select('remarks, reference_number').eq('id', advanceId).maybeSingle(),
+      db.from('orders').select('remarks, reference_number').eq('id', orderId).maybeSingle(),
+    ])
+    if (!advance || !order) return
+    const patch: Record<string, string> = {}
+    const advRemarks = String(advance.remarks || '').trim()
+    const advReference = String(advance.reference_number || '').trim()
+    if (advRemarks && !String(order.remarks || '').trim()) patch.remarks = advRemarks
+    if (advReference && !String(order.reference_number || '').trim()) patch.reference_number = advReference
+    if (Object.keys(patch).length > 0) await db.from('orders').update(patch).eq('id', orderId)
+  } catch (err) {
+    console.warn('[completeAdvanceOrder] Could not copy remarks / reference number to the invoice:', err)
+  }
+}
+
 export async function completeAdvanceOrder(
   orderId: string, 
   paymentMethod: AdvancePaymentMethod, 
@@ -425,6 +448,7 @@ export async function completeAdvanceOrder(
         throw err
       }
     }
+    if (result?.order_id) await carryAdvanceNotesToOrder(orderId, result.order_id)
   }
 
   const localOrders = loadLocalOrders()

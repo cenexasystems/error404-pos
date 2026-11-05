@@ -173,6 +173,20 @@ export interface BarcodeRenderOptions {
 }
 
 /**
+ * Rendering hints only (no change to bar widths, value or size): bars snap to whole device pixels
+ * instead of anti-aliasing into grey edges when the SVG is scaled, and the human-readable digits are
+ * drawn with precise glyph outlines. Keeps preview, print and thermal output crisp.
+ */
+function sharpenBarcodeSvg(svg: SVGSVGElement) {
+  svg.setAttribute('shape-rendering', 'crispEdges')
+  svg.setAttribute('text-rendering', 'geometricPrecision')
+  svg.querySelectorAll('rect').forEach(rect => rect.setAttribute('shape-rendering', 'crispEdges'))
+  svg.querySelectorAll('text').forEach(text => {
+    text.setAttribute('text-rendering', 'geometricPrecision')
+  })
+}
+
+/**
  * Render a CODE128 barcode directly into an SVG element.
  */
 export function renderBarcodeSvg(
@@ -195,6 +209,7 @@ export function renderBarcodeSvg(
       lineColor: options?.lineColor ?? '#000000',
       background: options?.background ?? '#ffffff',
     })
+    sharpenBarcodeSvg(svgElement)
   } catch (err) {
     console.error('[renderBarcodeSvg] Failed to generate barcode:', err)
   }

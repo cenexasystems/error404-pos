@@ -92,6 +92,30 @@ type DashboardOrder = {
   created_at: string; total: number; status: string; order_mode: string; order_type: string; user_id: string | null; items: unknown
   coupon_code: string; discount_amount: number; manual_discount_amount: number; delivery_charge: number
   total_gst: number; payment_mode: string; payment_method?: string; split_details?: unknown; invoice_pdf_url: string; remarks?: string; reference_number?: string
+  /** Real time the bill was saved/completed (created_at is the chosen billing date). */
+  completed_at?: string
+}
+
+const ORDER_HISTORY_COLUMNS = 'id, invoice_no, customer_name, phone, address, created_at, total, status, order_mode, order_type, user_id, items, coupon_code, discount_amount, manual_discount_amount, delivery_charge, total_gst, gst_amount, payment_mode, payment_method, split_details, remarks, reference_number'
+
+/** Latest completed bill first; equal times fall back to the higher invoice number, then id (stable). */
+const completionTime = (o: DashboardOrder) => Date.parse(o.completed_at || o.created_at) || 0
+const byLatestCompletion = (a: DashboardOrder, b: DashboardOrder) =>
+  (completionTime(b) - completionTime(a))
+  || b.invoice_no.localeCompare(a.invoice_no, undefined, { numeric: true })
+  || a.id.localeCompare(b.id)
+
+/**
+ * Runs an orders query sorted by completion time (newest first). If the database does not have the
+ * completed_at column yet (migration 0040 not applied), it repeats the query the previous way.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function queryOrdersNewestFirst(build: (columns: string) => any): Promise<{ data: unknown[] | null; error: unknown }> {
+  const withCompletion = await build(`${ORDER_HISTORY_COLUMNS}, completed_at`)
+    .order('completed_at', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
+  if (!withCompletion.error) return withCompletion
+  return build(ORDER_HISTORY_COLUMNS).order('created_at', { ascending: false })
 }
 type DashboardOrderItem = { order_id: string; product_id?: string | null; variant_id?: string | null; product_name: string; category?: string; quantity: number; line_total: number; is_manual?: boolean | null }
 type DashboardCoupon = {
@@ -413,6 +437,7 @@ export default function Dashboard() {
     invoice_pdf_url: String(row.invoice_pdf_url || ''),
     remarks: row.remarks ? String(row.remarks) : '',
     reference_number: row.reference_number ? String(row.reference_number) : '',
+    completed_at: row.completed_at ? String(row.completed_at) : undefined,
   })
 
   const handleAdvanceOrderCompleted = useCallback((advance: AdvanceOrder) => {
@@ -454,6 +479,7 @@ export default function Dashboard() {
       invoice_pdf_url: '',
       remarks: advance.remarks || '',
       reference_number: advance.reference_number || '',
+      completed_at: createdAt,
     }
     setOrders(current => [completed, ...current.filter(order => order.id !== completed.id)])
     setSearchResults(current => [completed, ...current.filter(order => order.id !== completed.id)].slice(0, 100))
@@ -954,7 +980,7 @@ export default function Dashboard() {
       }
 
       return true
-    }).sort((a, b) => ((Date.parse(b.created_at) || 0) - (Date.parse(a.created_at) || 0)) || a.id.localeCompare(b.id))
+    }).sort(byLatestCompletion)
   }, [searchResults, billTypeFilter, search.dateFrom, search.dateTo, historyGstScope])
 
   // Load dashboard data
@@ -965,10 +991,7 @@ export default function Dashboard() {
       const productsPromise = fetchProducts(true)
       const [cRes, oRes, couponRes, expList] = await Promise.all([
         db.from('categories').select('id, name_en, name_ta, is_active, sort_order').order('sort_order'),
-        db.from('orders')
-          .select('id, invoice_no, customer_name, phone, address, created_at, total, status, order_mode, order_type, user_id, items, coupon_code, discount_amount, manual_discount_amount, delivery_charge, total_gst, gst_amount, payment_mode, payment_method, split_details, remarks, reference_number')
-          .order('created_at', { ascending: false })
-          .limit(1000),
+        queryOrdersNewestFirst(columns => db.from('orders').select(columns).limit(1000)),
         db.from('coupons')
           .select('*')
           .order('created_at', { ascending: false }),
@@ -1066,13 +1089,16 @@ export default function Dashboard() {
   }
 
   const startEditOrder = (o: DashboardOrder) => {
+    // Completed advance orders: fall back to the Remarks / Reference Number entered on the
+    // advance order when the invoice row was created without them (older completions).
+    const advance = advanceOrders.find(a => a.completed_order_id === o.id)
     setEditingOrder(o)
     setEditOrderForm({
       customer_name: o.customer_name || '',
       phone: o.phone || '',
       address: o.address || '',
-      remarks: o.remarks || '',
-      reference_number: o.reference_number || '',
+      remarks: o.remarks || advance?.remarks || '',
+      reference_number: o.reference_number || advance?.reference_number || '',
       status: normalizeStatus(o.status) || 'completed',
     })
   }
@@ -1103,7 +1129,7 @@ export default function Dashboard() {
 
       setOrders(prev => prev.map(o => o.id === editingOrder.id ? { ...o, ...updatedFields } : o))
       setSearchResults(prev => prev.map(o => o.id === editingOrder.id ? { ...o, ...updatedFields } : o))
-      setAdvanceOrders(prev => prev.map(a => a.completed_order_id === editingOrder.id ? { ...a, remarks: updatedFields.remarks } : a))
+      setAdvanceOrders(prev => prev.map(a => a.completed_order_id === editingOrder.id ? { ...a, remarks: updatedFields.remarks, reference_number: updatedFields.reference_number } : a))
       setEditingOrder(null)
     } catch (err: unknown) {
       alert(`Error updating order: ${err instanceof Error ? err.message : String(err)}`)
@@ -1504,64 +1530,66 @@ export default function Dashboard() {
       const effectiveDateFrom = overrideDates !== undefined ? (overrideDates.dateFrom ?? '') : search.dateFrom
       const effectiveDateTo = overrideDates !== undefined ? (overrideDates.dateTo ?? '') : search.dateTo
 
-      let q = db.from('orders')
-        .select('id, invoice_no, customer_name, phone, address, created_at, total, status, order_mode, order_type, items, coupon_code, discount_amount, manual_discount_amount, delivery_charge, total_gst, gst_amount, payment_mode, payment_method, split_details, remarks, reference_number')
-        .neq('order_type', 'online_request')
-        .order('created_at', { ascending: false })
-        .limit(hasQuery ? 1000 : 500)
+      // Sorted by completion time (newest first) so the latest completed bill is always on top
+      const buildSearch = (columns: string) => {
+        let q = db.from('orders')
+          .select(columns)
+          .neq('order_type', 'online_request')
+          .limit(hasQuery ? 1000 : 500)
 
-      if (qText) {
-        const digitsOnly = qText.replace(/\D/g, '')
-        const nonZeroDigits = digitsOnly.replace(/^0+/, '')
-        const conds = [
-          `invoice_no.ilike.%${qText}%`,
-          `customer_name.ilike.%${qText}%`,
-          `phone.ilike.%${qText}%`
-        ]
-        if (digitsOnly && digitsOnly !== qText) {
-          conds.push(`invoice_no.ilike.%${digitsOnly}%`)
-          if (digitsOnly.length >= 4) conds.push(`phone.ilike.%${digitsOnly}%`)
+        if (qText) {
+          const digitsOnly = qText.replace(/\D/g, '')
+          const nonZeroDigits = digitsOnly.replace(/^0+/, '')
+          const conds = [
+            `invoice_no.ilike.%${qText}%`,
+            `customer_name.ilike.%${qText}%`,
+            `phone.ilike.%${qText}%`
+          ]
+          if (digitsOnly && digitsOnly !== qText) {
+            conds.push(`invoice_no.ilike.%${digitsOnly}%`)
+            if (digitsOnly.length >= 4) conds.push(`phone.ilike.%${digitsOnly}%`)
+          }
+          if (nonZeroDigits && nonZeroDigits !== digitsOnly && nonZeroDigits !== qText) {
+            conds.push(`invoice_no.ilike.%${nonZeroDigits}%`)
+          }
+          q = q.or(conds.join(','))
         }
-        if (nonZeroDigits && nonZeroDigits !== digitsOnly && nonZeroDigits !== qText) {
-          conds.push(`invoice_no.ilike.%${nonZeroDigits}%`)
+
+        if (invInput) {
+          const digitsOnly = invInput.replace(/\D/g, '')
+          const nonZeroDigits = digitsOnly.replace(/^0+/, '')
+          const conds = [`invoice_no.ilike.%${invInput}%`]
+          if (digitsOnly && digitsOnly !== invInput) conds.push(`invoice_no.ilike.%${digitsOnly}%`)
+          if (nonZeroDigits && nonZeroDigits !== digitsOnly && nonZeroDigits !== invInput) conds.push(`invoice_no.ilike.%${nonZeroDigits}%`)
+          q = q.or(conds.join(','))
         }
-        q = q.or(conds.join(','))
-      }
 
-      if (invInput) {
-        const digitsOnly = invInput.replace(/\D/g, '')
-        const nonZeroDigits = digitsOnly.replace(/^0+/, '')
-        const conds = [`invoice_no.ilike.%${invInput}%`]
-        if (digitsOnly && digitsOnly !== invInput) conds.push(`invoice_no.ilike.%${digitsOnly}%`)
-        if (nonZeroDigits && nonZeroDigits !== digitsOnly && nonZeroDigits !== invInput) conds.push(`invoice_no.ilike.%${nonZeroDigits}%`)
-        q = q.or(conds.join(','))
-      }
-
-      if (phoneInput) {
-        const digitsOnly = phoneInput.replace(/\D/g, '')
-        if (digitsOnly && digitsOnly.length >= 4) {
-          q = q.or(`phone.ilike.%${phoneInput}%,phone.ilike.%${digitsOnly}%`)
-        } else {
-          q = q.ilike('phone', `%${phoneInput}%`)
+        if (phoneInput) {
+          const digitsOnly = phoneInput.replace(/\D/g, '')
+          if (digitsOnly && digitsOnly.length >= 4) {
+            q = q.or(`phone.ilike.%${phoneInput}%,phone.ilike.%${digitsOnly}%`)
+          } else {
+            q = q.ilike('phone', `%${phoneInput}%`)
+          }
         }
+
+        if (custInput) {
+          q = q.ilike('customer_name', `%${custInput}%`)
+        }
+
+        // Apply date filters using local midnight / end-of-day ISO bounds
+        if (effectiveDateFrom) {
+          const fromDate = new Date(`${effectiveDateFrom}T00:00:00`)
+          q = q.gte('created_at', fromDate.toISOString())
+        }
+        if (effectiveDateTo) {
+          const toDate = new Date(`${effectiveDateTo}T23:59:59.999`)
+          q = q.lte('created_at', toDate.toISOString())
+        }
+        return q
       }
 
-      if (custInput) {
-        q = q.ilike('customer_name', `%${custInput}%`)
-      }
-
-      // Apply date filters using local midnight / end-of-day ISO bounds
-      if (effectiveDateFrom) {
-        const fromDate = new Date(`${effectiveDateFrom}T00:00:00`)
-        q = q.gte('created_at', fromDate.toISOString())
-      }
-      if (effectiveDateTo) {
-        const toDate = new Date(`${effectiveDateTo}T23:59:59.999`)
-        q = q.lte('created_at', toDate.toISOString())
-      }
-
-
-      const { data, error } = await q
+      const { data, error } = await queryOrdersNewestFirst(buildSearch)
       if (error) throw error
 
       let results = (data || []).map(r => toDashboardOrder(r as Record<string, unknown>))

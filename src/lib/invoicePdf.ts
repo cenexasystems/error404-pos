@@ -198,6 +198,20 @@ export function invoicePdfFile(data: InvoicePdfData): File {
   return new File([createInvoicePdf(data)], `Invoice-${formatInvoiceNo(data.invoiceNo)}.pdf`, { type: 'application/pdf' })
 }
 
+/**
+ * Capture resolution for invoice PDFs. The old fixed 2x scale (~190 DPI on A4) made small text look
+ * soft; 4x gives ~390 DPI so text stays crisp when zoomed or printed. The scale is reduced for very
+ * long invoices so the canvas stays under mobile browser limits (iOS Safari caps canvases at ~16.7M px).
+ */
+function invoiceCaptureScale(root: HTMLElement, width: number): number {
+  const target = 4
+  const maxPixels = 14_000_000
+  // Height at the capture width; measured at the on-screen width with headroom for reflow.
+  const estimatedHeight = Math.max(root.scrollHeight, root.offsetHeight, 1100) * 1.3
+  const fit = Math.sqrt(maxPixels / (width * estimatedHeight))
+  return Math.max(2, Math.min(target, Math.floor(fit * 4) / 4))
+}
+
 /** Captures the rendered invoice so the downloaded PDF matches the visible view and anchors footer to the bottom. */
 export async function invoicePdfFileFromElement(
   element: HTMLElement,
@@ -211,7 +225,7 @@ export async function invoicePdfFileFromElement(
   try {
     const canvas = await html2canvas(invoiceRoot, {
       backgroundColor: '#ffffff',
-      scale: 2,
+      scale: invoiceCaptureScale(invoiceRoot, canonicalWidth),
       useCORS: true,
       logging: false,
       windowWidth: 1024,

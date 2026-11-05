@@ -223,6 +223,8 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
               background: #fff !important;
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
               -webkit-print-color-adjust: exact;
+              text-rendering: geometricPrecision;
+              -webkit-font-smoothing: antialiased;
               print-color-adjust: exact;
             }
             .a4-container {
@@ -288,7 +290,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
               text-overflow: ellipsis;
               max-width: 98%;
               margin-top: 0.3mm;
-              color: #111;
+              color: #000;
               line-height: 1.1;
             }
             .barcode-box {
@@ -322,7 +324,7 @@ export const BarcodePrintModal: React.FC<BarcodePrintModalProps> = ({
             .retail-tag {
               font-size: ${tagFontSize};
               font-weight: 800;
-              color: #444;
+              color: #000;
             }
             .mrp {
               text-decoration: line-through;

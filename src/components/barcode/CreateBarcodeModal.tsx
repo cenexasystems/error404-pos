@@ -494,6 +494,8 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
               background: #fff !important;
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
               -webkit-print-color-adjust: exact;
+              text-rendering: geometricPrecision;
+              -webkit-font-smoothing: antialiased;
               print-color-adjust: exact;
             }
             .a4-container {
@@ -551,7 +553,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
               text-overflow: ellipsis;
               max-width: 98%;
               margin-top: 0.3mm;
-              color: #111;
+              color: #000;
               line-height: 1.1;
             }
             .barcode-box {
@@ -585,7 +587,7 @@ export const CreateBarcodeModal: React.FC<CreateBarcodeModalProps> = ({
             .tag {
               font-size: ${tagFontSize};
               font-weight: 700;
-              color: #444;
+              color: #000;
             }
             .price {
               font-size: ${priceFontSize};
