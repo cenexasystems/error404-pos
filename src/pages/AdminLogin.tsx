@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { Lock, Eye, EyeOff, AlertCircle, ChevronRight } from 'lucide-react'
 import { useAdminAuthStore } from '../store/store'
 import { InstallAppPrompt } from '../components/common/InstallAppPrompt'
-import { BRAND_EN, BRAND_TAGLINE, BRAND_LOGO } from '../lib/brand'
+import { BRAND_EN, BRAND_TAGLINE } from '../lib/brand'
+import { INVOICE_LOGO } from '../lib/logoInvoice'
 import { useLangStore } from '../store/langStore'
 import { alarmSound } from '../lib/alarmAudio'
 
@@ -52,9 +53,9 @@ export default function AdminLogin() {
           {/* Brand */}
           <div className="flex flex-col items-center text-center">
             <div className="relative mb-4">
-              <div className="relative h-20 w-20 overflow-hidden rounded-xl bg-transparent p-2 shadow-md">
+              <div className="relative h-[92px] w-[88px]">
                 <img
-                  src={BRAND_LOGO}
+                  src={INVOICE_LOGO}
                   alt={BRAND_EN}
                   className="h-full w-full object-contain"
                 />

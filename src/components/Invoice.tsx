@@ -195,7 +195,7 @@ export const Invoice: React.FC<InvoiceProps> = ({
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 18, minWidth: 0, flex: '1 1 300px' }}>
           <div style={{ width: 120, height: 125, flexShrink: 0 }}>
-            <img src={INVOICE_LOGO} alt={BRAND_EN} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+            <img src={INVOICE_LOGO} alt={BRAND_EN} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', imageRendering: '-webkit-optimize-contrast' }} />
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 26, fontWeight: 800, color: accent, lineHeight: 1.1, letterSpacing: 0.5 }}>{BRAND_EN.toUpperCase()}</div>
