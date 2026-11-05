@@ -1,9 +1,10 @@
 import React from 'react'
-import { BRAND_ADDRESS, BRAND_EMAIL, BRAND_EN, BRAND_GSTIN, BRAND_PRIMARY_PHONE_DISPLAY, BRAND_PRINT_LOGO } from '../lib/brand'
+import { BRAND_ADDRESS, BRAND_EMAIL, BRAND_EN, BRAND_GSTIN, BRAND_PRIMARY_PHONE_DISPLAY } from '../lib/brand'
 import { formatCurrency, formatQuantityDisplay, normalizeStructuredOrderItem, formatInvoiceNo } from '../lib/retail'
 import { formatPhoneDisplay } from '../lib/phone'
 import { amountInWords } from '../lib/amountInWords'
 import { SIGNATURE_IMAGE } from '../lib/signature'
+import { INVOICE_LOGO } from '../lib/logoInvoice'
 
 export interface InvoiceItem {
   id: string | number
@@ -193,8 +194,8 @@ export const Invoice: React.FC<InvoiceProps> = ({
       {/* ── HEADER ─────────────────────────────────────────────── */}
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20 }}>
         <div style={{ display: 'flex', gap: 16, minWidth: 0, flex: '1 1 300px' }}>
-          <div style={{ width: 64, height: 64, flexShrink: 0, border: `1px solid ${LINE}`, borderRadius: 6, padding: 2, boxSizing: 'border-box', overflow: 'hidden' }}>
-            <img src={BRAND_PRINT_LOGO} alt={BRAND_EN} style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 4, display: 'block' }} />
+          <div style={{ width: 84, height: 88, flexShrink: 0 }}>
+            <img src={INVOICE_LOGO} alt={BRAND_EN} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 23, fontWeight: 800, color: accent, lineHeight: 1.15, letterSpacing: 0.3 }}>{BRAND_EN.toUpperCase()}</div>

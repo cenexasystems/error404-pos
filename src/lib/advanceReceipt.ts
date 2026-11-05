@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf'
 import { BRAND_ADDRESS, BRAND_EN, BRAND_PHONE_DISPLAY, BRAND_PRIMARY_PHONE_DISPLAY } from './brand'
-import { BRAND_PRINT_LOGO } from './brand'
+import { INVOICE_LOGO } from './logoInvoice'
 import { formatCurrency } from './retail'
 import { formatPaymentLabel } from './payments'
 import type { AdvanceOrder, AdvancePayment } from '../services/advanceOrderService'
@@ -47,7 +47,7 @@ export function paymentLines(order: AdvanceOrder, payments: AdvancePayment[]): P
 export function advanceReceiptPdf(order: AdvanceOrder, payments: AdvancePayment[] = []) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   doc.setFillColor('#111111'); doc.rect(0, 0, 210, 5, 'F')
-  try { doc.addImage(BRAND_PRINT_LOGO, 'PNG', 16, 9, 16, 16) } catch (_err) { /* ignore missing logo */ }
+  try { doc.addImage(INVOICE_LOGO, 'PNG', 16.3, 9, 15.4, 16) } catch (_err) { /* ignore missing logo */ }  // trimmed logo keeps its 0.96 aspect
   doc.setTextColor('#111111'); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(BRAND_EN.toUpperCase(), 38, 19)
   doc.setFont('helvetica', 'normal'); doc.setTextColor('#111111'); doc.setFontSize(8); doc.text('ADVANCE RECEIPT - NOT A TAX INVOICE', 38, 26)
 

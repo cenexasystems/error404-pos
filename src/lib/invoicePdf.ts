@@ -4,7 +4,7 @@ import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
 import { BRAND_ADDRESS, BRAND_EN, BRAND_PHONE_DISPLAY } from './brand'
 import { formatCurrency, formatQuantityDisplay, normalizeStructuredOrderItem, formatInvoiceNo } from './retail'
-import { BRAND_PRINT_LOGO } from './brand'
+import { INVOICE_LOGO } from './logoInvoice'
 
 export type InvoicePdfData = {
   invoiceNo: string
@@ -60,9 +60,9 @@ export function createInvoicePdf(data: InvoicePdfData): Blob {
   y += 10
 
   try {
-    const image = doc.getImageProperties(BRAND_PRINT_LOGO)
+    const image = doc.getImageProperties(INVOICE_LOGO)
     const scale = Math.min(22 / image.width, 22 / image.height)
-    doc.addImage(BRAND_PRINT_LOGO, 'PNG', left + (22 - image.width * scale) / 2, y + (22 - image.height * scale) / 2, image.width * scale, image.height * scale)
+    doc.addImage(INVOICE_LOGO, 'PNG', left + (22 - image.width * scale) / 2, y + (22 - image.height * scale) / 2, image.width * scale, image.height * scale)
   } catch {
     doc.setTextColor(primaryColor)
     doc.setFontSize(16)
