@@ -3,6 +3,7 @@ import { BRAND_ADDRESS, BRAND_EMAIL, BRAND_EN, BRAND_GSTIN, BRAND_PRIMARY_PHONE_
 import { formatCurrency, formatQuantityDisplay, normalizeStructuredOrderItem, formatInvoiceNo } from '../lib/retail'
 import { formatPhoneDisplay } from '../lib/phone'
 import { amountInWords } from '../lib/amountInWords'
+import { SIGNATURE_IMAGE } from '../lib/signature'
 
 export interface InvoiceItem {
   id: string | number
@@ -339,6 +340,9 @@ export const Invoice: React.FC<InvoiceProps> = ({
       >
         <div style={{ fontSize: 12, color: MUTED }}>Thank you for your visit! • {BRAND_EN.toUpperCase()}</div>
         <div style={{ textAlign: 'right', marginLeft: 'auto' }}>
+          <div style={{ width: 160, marginLeft: 'auto', display: 'flex', justifyContent: 'center' }}>
+            <img src={SIGNATURE_IMAGE} alt="Authorised signature" style={{ width: 140, height: 'auto', display: 'block', marginBottom: 4 }} />
+          </div>
           <div style={{ borderTop: '1px solid #9CA3AF', width: 160, marginLeft: 'auto', paddingTop: 6, fontSize: 12.5, fontWeight: 700, color: '#111111' }}>Authorised Signatory</div>
           <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>For {BRAND_EN.toUpperCase()}</div>
         </div>
