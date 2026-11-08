@@ -113,6 +113,7 @@ const byLatestCompletion = (a: DashboardOrder, b: DashboardOrder) =>
  * completed_at column yet (migration 0040 not applied), it repeats the query the previous way.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const HISTORY_PAGE_SIZE = 100
 async function queryOrdersNewestFirst(build: (columns: string) => any): Promise<{ data: unknown[] | null; error: unknown }> {
   const withCompletion = await build(`${ORDER_HISTORY_COLUMNS}, completed_at`)
     .order('completed_at', { ascending: false, nullsFirst: false })
@@ -344,6 +345,9 @@ export default function Dashboard() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [searchResults, setSearchResults] = useState<DashboardOrder[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
+  const [historyHasMore, setHistoryHasMore] = useState(false)
+  const [historyLoadingMore, setHistoryLoadingMore] = useState(false)
+  const historyOffset = useRef(0)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     try {
       return window.localStorage.getItem('dashboard-sidebar-collapsed') === '1'
@@ -1005,7 +1009,10 @@ export default function Dashboard() {
       const mappedOrders = (oRes.data || []).map(r => toDashboardOrder(r as Record<string, unknown>))
       setCats((cRes.data || []) as Category[])
       setOrders(mappedOrders)
-      setSearchResults(mappedOrders.filter(o => normalizeOrderType(o.order_type) !== 'online_request').slice(0, 100))
+      const historyFirstPage = mappedOrders.filter(o => normalizeOrderType(o.order_type) !== 'online_request').slice(0, HISTORY_PAGE_SIZE)
+      setSearchResults(historyFirstPage)
+      historyOffset.current = historyFirstPage.length
+      setHistoryHasMore(historyFirstPage.length >= HISTORY_PAGE_SIZE)
       setCoupons((couponRes.data || []) as DashboardCoupon[])
       setExpenses(expList || [])
 
@@ -1521,9 +1528,11 @@ export default function Dashboard() {
   }, [billTypeFilter, datePreset, search])
 
   // Order search - POS bills only (online_request excluded)
-  const runSearch = async (e?: FormEvent, overrideDates?: { dateFrom?: string; dateTo?: string }) => {
+  const runSearch = async (e?: FormEvent, overrideDates?: { dateFrom?: string; dateTo?: string }, append = false) => {
     e?.preventDefault()
-    setSearchLoading(true)
+    if (append) setHistoryLoadingMore(true)
+    else setSearchLoading(true)
+    const pageOffset = append ? historyOffset.current : 0
     try {
       const qText = historyQuickSearch.trim()
       const invInput = search.invoiceNo.trim()
@@ -1538,7 +1547,7 @@ export default function Dashboard() {
         let q = db.from('orders')
           .select(columns)
           .neq('order_type', 'online_request')
-          .limit(hasQuery ? 1000 : 500)
+          .range(pageOffset, pageOffset + HISTORY_PAGE_SIZE - 1)
 
         if (qText) {
           const digitsOnly = qText.replace(/\D/g, '')
@@ -1596,6 +1605,8 @@ export default function Dashboard() {
       if (error) throw error
 
       let results = (data || []).map(r => toDashboardOrder(r as Record<string, unknown>))
+      historyOffset.current = pageOffset + results.length
+      setHistoryHasMore(results.length >= HISTORY_PAGE_SIZE)
 
       // Client-side match filter to handle formatted invoice numbers and local calendar dates
       const matchOrder = (o: DashboardOrder) => {
@@ -1643,7 +1654,7 @@ export default function Dashboard() {
       if (billTypeFilter !== 'all') results = results.filter(o => getBillType(o) === billTypeFilter)
 
       // Fallback: if query returned no results from Supabase, search in pre-loaded orders
-      if (results.length === 0 && orders.length > 0) {
+      if (!append && results.length === 0 && orders.length > 0) {
         const localMatches = orders.filter(o => {
           if (normalizeOrderType(o.order_type) === 'online_request') return false
           if (billTypeFilter === 'manual' && getBillType(o) !== 'manual') return false
@@ -1656,12 +1667,21 @@ export default function Dashboard() {
         }
       }
 
-      setSearchResults(results.filter(o => !deletedOrderIds.current.has(o.id)))
+      const visible = results.filter(o => !deletedOrderIds.current.has(o.id))
+      if (append) {
+        setSearchResults(prev => {
+          const seen = new Set(prev.map(o => o.id))
+          return [...prev, ...visible.filter(o => !seen.has(o.id))]
+        })
+      } else {
+        setSearchResults(visible)
+      }
     } catch (err) {
       console.error('Search error:', err)
-      setSearchResults([])
+      if (!append) setSearchResults([])
     } finally {
       setSearchLoading(false)
+      setHistoryLoadingMore(false)
     }
   }
 
@@ -3596,7 +3616,7 @@ export default function Dashboard() {
 
             <div className="space-y-3">
               <div className="space-y-3 md:hidden">
-                {filteredSearchResults.slice(0, 50).map(o => {
+                {filteredSearchResults.map(o => {
                   const billTypeLabel = normalizeOrderType(o.order_type) === 'manual_sale' ? 'MANUAL' : normalizeOrderMode(o.order_mode) === 'online' ? 'ONLINE' : 'OFFLINE'
                   const billTypeClass = normalizeOrderType(o.order_type) === 'manual_sale' ? 'bg-gray-50 text-gray-700' : normalizeOrderMode(o.order_mode) === 'online' ? 'bg-gray-50 text-gray-700' : 'bg-orange-50 text-orange-700'
                   return (
@@ -3691,7 +3711,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredSearchResults.slice(0, 50).map(o => {
+                    {filteredSearchResults.map(o => {
                       const sourceLabel = normalizeOrderType(o.order_type) === 'manual_sale' ? 'Manual' : normalizeOrderMode(o.order_mode) === 'online' ? 'Online' : 'Offline'
                       const created = new Date(o.created_at)
                       const completedStatus = normalizeStatus(o.status) === 'completed'
@@ -3796,6 +3816,19 @@ export default function Dashboard() {
                   </tbody>
                 </table>
               </div>
+              {historyHasMore && (
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    disabled={historyLoadingMore}
+                    onClick={() => void runSearch(undefined, undefined, true)}
+                    className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 text-[12px] font-bold uppercase tracking-wider text-[#111111] shadow-sm hover:bg-gray-50 disabled:opacity-50 cursor-pointer"
+                  >
+                    {historyLoadingMore && <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-700" />}
+                    {l('Show more', 'மேலும் காட்டு')}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
