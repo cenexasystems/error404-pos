@@ -283,32 +283,48 @@ export default function BillingAnalytics() {
 
     setLoading(true)
     try {
-      const [ordersRes] = await Promise.all([
-        db
-          .from('orders')
-          .select('id, invoice_no, customer_name, phone, address, created_at, total, status, order_mode, order_type, items, coupon_code, discount_amount, delivery_charge')
-          .order('created_at', { ascending: false })
-          .limit(1000),
+      // Page through ALL orders (the API returns at most 1000 rows per request)
+      const PAGE = 1000
+      const allOrderRows: unknown[] = []
+      await Promise.all([
+        (async () => {
+          for (let from = 0; ; from += PAGE) {
+            const res = await db
+              .from('orders')
+              .select('id, invoice_no, customer_name, phone, address, created_at, total, status, order_mode, order_type, items, coupon_code, discount_amount, delivery_charge')
+              .order('created_at', { ascending: false })
+              .range(from, from + PAGE - 1)
+            const batch = res.data || []
+            allOrderRows.push(...batch)
+            if (res.error || batch.length < PAGE) break
+          }
+        })(),
         fetchProducts(true),
       ])
 
-      const mappedOrders = (ordersRes.data || []).map((row) => toBillingOrder(row as Record<string, unknown>))
+      const mappedOrders = allOrderRows.map((row) => toBillingOrder(row as Record<string, unknown>))
       setOrders(mappedOrders)
 
       const orderIds = mappedOrders.map((order) => order.id).filter(Boolean)
       if (orderIds.length > 0) {
-        const itemsRes = await db
-          .from('order_items')
-          .select('order_id, product_name, quantity, line_total, is_manual')
-          .in('order_id', orderIds)
-
-        let rows: Array<Record<string, unknown>> = (itemsRes.data || []) as Array<Record<string, unknown>>
-        if (itemsRes.error) {
-          const fallbackRes = await db
+        // Chunk the ids: one .in() with thousands of ids exceeds the URL length limit
+        const CHUNK = 150
+        const rows: Array<Record<string, unknown>> = []
+        for (let i = 0; i < orderIds.length; i += CHUNK) {
+          const ids = orderIds.slice(i, i + CHUNK)
+          const itemsRes = await db
             .from('order_items')
-            .select('order_id, product_name, quantity, line_total')
-            .in('order_id', orderIds)
-          rows = (fallbackRes.data || []) as Array<Record<string, unknown>>
+            .select('order_id, product_name, quantity, line_total, is_manual')
+            .in('order_id', ids)
+          if (itemsRes.error) {
+            const fallbackRes = await db
+              .from('order_items')
+              .select('order_id, product_name, quantity, line_total')
+              .in('order_id', ids)
+            rows.push(...((fallbackRes.data || []) as Array<Record<string, unknown>>))
+          } else {
+            rows.push(...((itemsRes.data || []) as Array<Record<string, unknown>>))
+          }
         }
 
         setOrderItems(rows.map((row) => ({

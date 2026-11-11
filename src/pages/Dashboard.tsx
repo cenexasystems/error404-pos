@@ -114,6 +114,45 @@ const byLatestCompletion = (a: DashboardOrder, b: DashboardOrder) =>
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const HISTORY_PAGE_SIZE = 100
+const ORDER_FETCH_PAGE = 1000
+const ORDER_ITEMS_CHUNK = 150
+
+/** Loads EVERY order (newest first) in pages, so analytics/revenue stay correct beyond 1000 bills. */
+async function fetchAllOrdersNewestFirst(): Promise<{ data: unknown[] | null; error: unknown }> {
+  const all: unknown[] = []
+  for (let from = 0; ; from += ORDER_FETCH_PAGE) {
+    const res = await queryOrdersNewestFirst(columns =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (db as any).from('orders').select(columns).range(from, from + ORDER_FETCH_PAGE - 1))
+    if (res.error) return { data: null, error: res.error }
+    const rows = res.data || []
+    all.push(...rows)
+    if (rows.length < ORDER_FETCH_PAGE) break
+  }
+  return { data: all, error: null }
+}
+
+/** Loads order_items for many orders in chunks (a single .in() with thousands of ids breaks the URL limit). */
+async function fetchOrderItemsForOrders(orderIds: string[]): Promise<unknown[]> {
+  const chunks: string[][] = []
+  for (let i = 0; i < orderIds.length; i += ORDER_ITEMS_CHUNK) chunks.push(orderIds.slice(i, i + ORDER_ITEMS_CHUNK))
+  const fetchChunk = async (ids: string[]): Promise<unknown[]> => {
+    const full = await db.from('order_items')
+      .select('order_id,product_id,variant_id,product_name,category,quantity,line_total,is_manual')
+      .in('order_id', ids)
+    if (!full.error) return full.data || []
+    const fallback = await db.from('order_items')
+      .select('order_id,product_id,variant_id,product_name,quantity,line_total,is_manual')
+      .in('order_id', ids)
+    return fallback.data || []
+  }
+  const out: unknown[] = []
+  for (let i = 0; i < chunks.length; i += 6) {
+    const results = await Promise.all(chunks.slice(i, i + 6).map(fetchChunk))
+    results.forEach(r => out.push(...r))
+  }
+  return out
+}
 async function queryOrdersNewestFirst(build: (columns: string) => any): Promise<{ data: unknown[] | null; error: unknown }> {
   const withCompletion = await build(`${ORDER_HISTORY_COLUMNS}, completed_at`)
     .order('completed_at', { ascending: false, nullsFirst: false })
@@ -998,7 +1037,7 @@ export default function Dashboard() {
       const productsPromise = fetchProducts(true)
       const [cRes, oRes, couponRes, expList] = await Promise.all([
         db.from('categories').select('id, name_en, name_ta, is_active, sort_order').order('sort_order'),
-        queryOrdersNewestFirst(columns => db.from('orders').select(columns).limit(1000)),
+        fetchAllOrdersNewestFirst(),
         db.from('coupons')
           .select('*')
           .order('created_at', { ascending: false }),
@@ -1018,20 +1057,7 @@ export default function Dashboard() {
 
       const orderIds = mappedOrders.map(o => o.id).filter(Boolean)
       if (orderIds.length > 0) {
-        let oi: unknown[] | null = null
-        let orderItemsError: unknown = null
-        const orderItemsResult = await db
-          .from('order_items').select('order_id,product_id,variant_id,product_name,category,quantity,line_total,is_manual')
-          .in('order_id', orderIds)
-        oi = orderItemsResult.data
-        orderItemsError = orderItemsResult.error
-
-        if (orderItemsError) {
-          const fallbackItemsResult = await db
-            .from('order_items').select('order_id,product_id,variant_id,product_name,quantity,line_total,is_manual')
-            .in('order_id', orderIds)
-          oi = fallbackItemsResult.data
-        }
+        const oi = await fetchOrderItemsForOrders(orderIds)
 
         setOrderItems((oi || []).map(r => ({
           order_id: String((r as Record<string,unknown>).order_id || ''),
